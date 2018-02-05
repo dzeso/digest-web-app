@@ -1,0 +1,31 @@
+    sourceById (state) {  
+       return (newsId) => {
+          return state.newsList.find ((news) => {
+             return news.id === newsId})
+          } 
+       },
+
+    
+    <news-view-header :news="news" :name=news.id></news-view-header>
+    
+         colors: [ "teal", "green", "light green", "grey", "blue-grey", "indigo", " red", "teal", "blue", "green", 
+                  "pink", "amber", "blue-grey",
+                  "purple", "light-green", "orange", "grey",
+                  "cyan", "lime", "deep-orange"],
+
+       <span :class="color+'--text'" v-for="color in colors"> {{ color }}</span>
+
+    newsList: function(state) {  
+       return state.newsList;
+       },
+                       <news-view-dialog :newsIdTo="reference.idTo"></news-view-dialog>
+
+
+     <?!= includeFromGoogleDrive('1iwc7Z0PDAnfAjoNk4hXnGWF551jOXJV-'); ?>  <!-- localstoragedb -->
+     <?!= includeFromGoogleDrive('1Ong0eQT4fDeIXuvSJCQi5V3EfV9F2TtP'); ?>  <!-- localstoragedb_util -->
+     
+         colorsTagList (state) {  
+       return (state.ui.colors.theme === "light") 
+          ? state.ui.colors.tagList.light 
+          : state.ui.colors.tagList.dark
+       },

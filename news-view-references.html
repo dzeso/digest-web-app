@@ -1,0 +1,29 @@
+<script type="text/x-template" id="news-view-references-template">
+     <span>  
+          <span class="primary--text"> См. так же по теме:</span>
+          <ol class="pl-4">
+            <template v-for="reference in references">
+              <li v-if="(!reference.idTo)" class="primary--text" :key=reference.id>
+                <a class="" target="_blank" :href="'//'+reference.link">{{ reference.title }}</a>
+              </li>
+              <li v-else class="primary--text" :key=reference.id>
+                <router-link :to="'/digest/news/' + reference.idTo" tag="a">{{reference.title}}</router-link>
+                <news-view-dialog :newsIdTo="reference.idTo"></news-view-dialog>
+              </li>
+            </template>
+          </ol>
+     </span>
+</script>
+
+<script>
+console.log ("newsViewReferences started");
+var newsViewReferences = {
+      template: '#news-view-references-template',
+      props: ['references'],      
+      name: 'news-view-body',
+      components: {
+        NewsViewDialog: newsViewDialog,
+      }
+};
+</script>
+

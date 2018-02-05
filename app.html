@@ -1,0 +1,31 @@
+<script>
+
+new Vue({
+  el: '#digest',
+  store: store,
+  router: router,
+  data: {
+     },
+  methods: {
+
+  },
+  computed: {
+//    lightTheme () {
+//      return this.$store.getters.lightTheme;
+//    }
+  },
+  components: {
+    NewsViewList: newsViewList,
+    NewsView: newsView,
+    GuiApp: gui,
+    StartPage: startPage,
+    Test: test
+    },
+  created: function () { 
+    this.$store.dispatch("startLocalDb");
+    console.log ('state.ls.db', this.$store.getters.ls.db);   
+  }
+});
+    
+</script>
+

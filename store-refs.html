@@ -1,0 +1,56 @@
+<script>
+
+function setArrayToIndexedObjest(array) {
+	let result = {};
+	for (let data of array) {
+	  result[data.id] = data;
+	  console.log ('result[data.id] = source', result[data.id]);
+	}
+    if (array.length>0) result.max = array[array.length-1].id;
+    console.log ('result.max', result.max);
+  return result;
+}
+/* Справочники имеют структуру:
+  obj[id] = (поля из базы},
+  obj.max = максимальное id значения
+*/
+var refs = {
+  state: {
+    source: {},
+    rubric: {},
+    version: {}
+  },
+  getters: {
+    source (state) { return state.source; },
+    rubric (state) { return state.rubric; },
+    version (state) { return state.version; },
+   },
+   mutations: {
+     setRubric (state, data) { state.rubric = data; },
+     setSource (state, data) { state.source = data; },
+     setVersion (state, data) { state.version = data; },
+     setRefVersionValue (state, data) { 
+       if (data.value) state.version[data.ref][data.key] = data.value; 
+     }
+   },
+   actions: {
+     setVersion ({commit}, data) {
+       console.log ('setVersion ({commit}, data)', data);
+       commit('setVersion', data);
+       },
+     setRefByName ({commit}, payload) {
+       const result = setArrayToIndexedObjest(payload.data),
+             refName = payload.name.toLowerCase();
+       const refAction = 'set' + refName.charAt(0).toUpperCase() + refName.substr(1);
+       console.log ( refAction + ' ({commit}, data)', result.max);
+       commit('setRefVersionValue', {
+         ref: refName,
+         key: 'id_local',
+         value: result.max
+         });
+       commit(refAction, result);
+       },
+   }
+};
+console.log ("store_newsList started");
+</script>

@@ -1,0 +1,42 @@
+<script>
+
+Vue.use(VueRouter);
+
+var router = new VueRouter ({
+  history: false,
+  routes: [
+    {
+      path: '/digest',
+      name: 'Home',
+      component: startPage,
+    },
+    {
+      path: '/digest/news/list',
+      name: 'newsViewList',
+      component: newsViewList,
+    },
+    {
+      path: '/digest/news/:id',
+      name: 'newsView',
+      component: newsView,
+    },
+    {
+      path: '/digest/test',
+      name: 'test',
+      component: test,
+    },
+    {
+      path: '/digest/config',
+      name: 'config',
+      component: test,
+    },
+    {
+      path: '/digest/help',
+      name: 'help',
+      component: test,
+    },
+    { path: '*', redirect: '/digest/news/list' }
+  ]
+});
+console.log ("router started", router);
+</script>

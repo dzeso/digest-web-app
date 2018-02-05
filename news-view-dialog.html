@@ -1,0 +1,45 @@
+<script type="text/x-template" id="news-view-dialog-template">
+    <v-dialog v-model="dialog"  transition="dialog-bottom-transition" >
+      <a slot="activator">{{ news.title }}</a> 
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-btn icon @click.native="dialog = false" dark>
+            <v-icon>close</v-icon>
+          </v-btn>
+          <v-toolbar-title>Settings</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-toolbar-items>
+            <v-btn dark flat @click.native="dialog = false">Save</v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
+        <v-card-text>
+          <news-view-header :news="news"></news-view-header>
+          <news-view-body :paragraphs="news.paragraphs"></news-view-body>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+</script>
+
+<script>
+console.log ("newsViewDialog started");
+var newsViewDialog = {
+    template: '#news-view-dialog-template', 
+    name: 'news-view-dialog',
+    computed: {
+      news () {
+        return this.$store.getters.newsById(this.newsIdTo);
+        }
+    },
+    components: {
+       NewsViewHeader: newsViewHeader,
+       NewsViewBody: newsViewBody
+    },
+    props: ['newsIdTo'],
+    data () {
+      return {
+        dialog: false
+      }
+    }
+};
+</script>
+

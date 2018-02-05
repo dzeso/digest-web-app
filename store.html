@@ -1,0 +1,107 @@
+<script>
+
+Vue.use(Vuex);
+
+var store = new Vuex.Store ({
+  state: {
+    ui: {dialog: false,
+         colors: {tagList: { light: [ "teal", "green", "light-green", "grey", "blue-grey", "indigo"],
+                             dark:  ["green", "grey", "orange", "lime", "amber", "deep-orange"]},
+                  theme: "dark"
+                  },
+         footer: ''
+         },
+     ls: {db: undefined,
+          config: '',
+          dbStructure: 
+            [{ name: "news",
+                tables: [
+                { name: "news",
+                    fields: 
+                      ["id","title","source","rating","key","date","time","link",
+                      "last_edit","paragraphs","references","tags", "rubrics"]
+                }]
+             },
+              { name: "refs",
+                  tables: [
+                  { name: "version",
+                      fields: 
+                        ['id', 'ref_name', 'v_local', 'v_server', 'id_local', 'id_server'] 
+                  },
+                  { name: "rubric",
+                      fields: 
+                        ['id', 'rubric', 'unchecked', 'description'] 
+                  },
+                  { name: "source",
+                      fields: 
+                        ['id', 'source', 'link_web', 'description'] 
+                   }]
+                }
+             ]
+          },
+    },
+  getters: {
+    ls (state) {  
+       return state.ls;
+       },
+    ui (state) {  
+       return state.ui;
+       },
+    colorsTagList (state) {  
+       return (state.ui.colors.theme === "light") 
+          ? state.ui.colors.tagList.light 
+          : state.ui.colors.tagList.dark
+       },
+  },
+  mutations: {
+     setLsDb (state, connections) {  
+       state.ls.db = connections;
+       console.log ("setLsDb", state.ls.db);
+     },
+     setFooter (state, msg) {  
+       state.ui.footer = msg;
+     },
+  },
+  actions: {
+    startLocalDb ({commit, dispatch, getters}) {
+      ls_async_OpenDb(getters.ls.dbStructure)
+        .then((connections) => {
+           commit('setLsDb', connections);
+           return Promise.all([
+             ls_async_ReadTable({db: connections["refs"], table: "version", sort: [["id"]]}),
+             ls_async_ReadTable({db: connections["refs"], table: "source", sort: [["id"]]}),
+             ls_async_ReadTable({db: connections["refs"], table: "rubric", sort: [["id"]]})
+             ])
+           })
+        .then((results) => {
+           dispatch("setVersion", results[0]);
+           dispatch("setRefByName", { data: results[1], name: "source" });
+           dispatch("setRefByName", { data: results[2], name: "rubric" });
+           console.log('Справочники', results);
+           return callGasSriptAsPromise().apiGetRef({
+             
+             })
+           })
+        .then((result) => {
+           console.log('Актуальные версии с сервера', result);    
+           })
+        .catch((error) => {
+           commit('setFooter', "Локальную БД открыть не удалось");
+           console.error('ls_async_OpenDb', error);
+           });     
+      },
+    updateLocalDb ({commit, dispatch, getters}) {
+      if (!getters.ls.db) {
+        console.error('updateLocalDb', 'Локальная база данных не рабоает');
+        return;
+      }
+      });
+   }
+  }, 
+  modules: {
+     news,
+     refs,
+  }
+});
+console.log ("store started");
+</script>

@@ -1,0 +1,15 @@
+<script type="text/x-template" id="news-view-body-template">
+     <span>  
+        <p v-for="paragraph in paragraphs" :key=paragraph.id>{{paragraph.text}}</p>
+     </span>
+</script>
+
+<script>
+console.log ("newsViewBody started");
+var newsViewBody = {
+      template: '#news-view-body-template',
+      props: ['paragraphs'],      
+      name: 'news-view-body',    
+};
+</script>
+

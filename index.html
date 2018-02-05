@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <link href='//fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+    <link href="//unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <link href="//cdn.materialdesignicons.com/2.1.19/css/materialdesignicons.min.css" media="all" rel="stylesheet" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title>CultureNewsDigest</title>
+    <base target="_top">
+    <?!= include('css'); ?>
+  </head>
+
+  <body>
+    <div id="digest">
+      <v-app>
+        <gui-app></gui-app>
+      </v-app>
+    </div>
+
+    <script src="//unpkg.com/vue/dist/vue.js"></script>
+    <script src="//unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="//unpkg.com/vuex"></script>
+    <script src="//unpkg.com/vuetify/dist/vuetify.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/lodash@4.17.4/lodash.min.js"></script>
+    
+    <?!= includeFromGoogleDrive('1iwc7Z0PDAnfAjoNk4hXnGWF551jOXJV-'); ?> <!-- localstoragedb -->
+    <?!= includeFromGoogleDrive('1Ong0eQT4fDeIXuvSJCQi5V3EfV9F2TtP'); ?> <!-- localstoragedb_util -->
+    <?!= includeFromGoogleDrive('1GTeN3TmzyGVDqc2eQp_HBRPgumsehVOr'); ?> <!-- googlescript -->  
+
+    <?!= include('store-news'); ?>
+    <?!= include('store-refs'); ?>
+    <?!= include('store'); ?>
+    <?!= include('test'); ?>
+    <?!= include('news-view-header'); ?>
+    <?!= include('news-view-body'); ?>
+    <?!= include('news-view-dialog'); ?>
+    <?!= include('news-view-references'); ?>
+    <?!= include('news-view'); ?>
+    <?!= include('news-view-list'); ?>
+    <?!= include('app-gui'); ?>
+    <?!= include('start-page'); ?>
+    <?!= include('router'); ?>
+    <?!= include('app'); ?>
+
+  </body>
+
+</html>
+
+
+    

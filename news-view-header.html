@@ -1,0 +1,33 @@
+<script type="text/x-template" id="news-view-header-template">
+      <span>  
+        <div class="py-3">
+          <h6 class="title"><span class="primary--text">{{news.title}}</span></h6>
+        </div>
+        <div class="pl-3">
+          <p class="caption">
+            {{news.date}} {{news.time}} (
+            <a class="" target="_blank" v-bind:href="'//'+news.link">{{ news.source.name }}</a>)
+          </p>
+          <p class="body-1">{{news.lead}}</p>
+        </div>
+        <span class="primary--text" v-for="rubric in news.rubrics" :key=rubric.id>
+          #{{ rubric.name }} 
+      </span>
+        <span :class="colorsTagList[tag.type.id]+'--text'" v-for="tag in news.tags" :key=tag.id>
+        #{{ tag.name }}
+       </span>
+     </span>
+</script>
+
+<script>
+console.log ("newsViewHeader started");
+var newsViewHeader = {
+    template: '#news-view-header-template',
+    props: ['news'],
+    computed: Vuex.mapGetters ([
+       "colorsTagList"
+    ])
+};
+//console.log ("newsViewHeader colors", this.colors);
+</script>
+

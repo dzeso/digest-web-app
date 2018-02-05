@@ -1,0 +1,70 @@
+<style>
+
+</style>
+
+<script type="text/x-template" id="news-view-list-template">
+  <v-expansion-panel popout class="">
+    <v-expansion-panel-content v-for="news in newsList" :key=news.id>
+      <div slot="header">
+        <news-view-header :news="news"></news-view-header>
+      </div>
+      <v-card>
+        <v-divider class="dark"></v-divider>
+        <v-card-text>
+          <news-view-body :paragraphs="news.paragraphs"></news-view-body>
+          <news-view-references :references="news.references"></news-view-references>
+        </v-card-text>
+      </v-card>
+    </v-expansion-panel-content>
+  </v-expansion-panel>
+</script>
+
+<script>
+var newsViewList = {
+    template: '#news-view-list-template',        
+    components: {
+       NewsViewHeader: newsViewHeader,
+       NewsViewBody: newsViewBody,
+       NewsViewReferences: newsViewReferences
+    },
+    methods: {
+    },
+    computed: {...Vuex.mapGetters ([
+       "newsList"
+    ]),
+      newsList1() {
+        console.time("newsList1");
+        ls_async_OpenDb([{ name: "news"},{ name: "refs" }])
+          .then((connections) => {
+		       Promise.all([
+		          ls_async_ReadTable({db: connections["refs"], table: "source", sort: [["id"]]}),
+		          ls_async_ReadTable({db: connections["refs"], table: "rubric", sort: [["id"]]})
+		       ]).then((results) => {
+		            console.log('Справочники', results);    
+		       })
+		         .catch((error) => {
+		            console.error('ls_async_OpenDb', error);
+		       });
+		    })
+          .then((connections) => {
+		       console.timeEnd("newsList1");
+		    })  
+          .catch((error) => {
+		      console.error('ls_async_OpenDb', error);
+		  });
+        return this.$store.getters.newsList;
+      }
+    },
+    data: function () {
+      return {
+        period: "тут будет указан период",
+        filterState: "состояние фильтра",
+        digestState: "количество строк и пр",
+        soursesList: "ria.ru",
+        }
+    }
+  };
+
+console.log ("newsViewList started");
+</script>
+
