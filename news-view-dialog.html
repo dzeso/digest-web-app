@@ -27,6 +27,7 @@ var newsViewDialog = {
     name: 'news-view-dialog',
     computed: {
       news () {
+        console.log ('newsViewDialog news', this.newsIdTo, this.$store.getters.newsById(this.newsIdTo));
         return this.$store.getters.newsById(this.newsIdTo);
         }
     },

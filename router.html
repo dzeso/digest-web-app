@@ -11,31 +11,32 @@ var router = new VueRouter ({
       component: startPage,
     },
     {
-      path: '/digest/news/list',
+      path: '/news/list/:mode',
       name: 'newsViewList',
       component: newsViewList,
     },
     {
-      path: '/digest/news/:id',
+      path: '/news/:id/:mode',
       name: 'newsView',
       component: newsView,
+      props: true
     },
     {
-      path: '/digest/test',
+      path: '/test',
       name: 'test',
       component: test,
     },
     {
-      path: '/digest/config',
+      path: '/config',
       name: 'config',
       component: test,
     },
     {
-      path: '/digest/help',
+      path: '/help',
       name: 'help',
       component: test,
     },
-    { path: '*', redirect: '/digest/news/list' }
+    { path: '*', redirect: '/news/list/unread' }
   ]
 });
 console.log ("router started", router);

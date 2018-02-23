@@ -1,21 +1,37 @@
 <script type="text/x-template" id="news-view-header-template">
       <span>  
         <div class="py-3">
-          <h6 class="title"><span class="primary--text">{{news.title}}</span></h6>
+          <h6 class="title"><span class="primary--text">{{article.title}}</span></h6>
         </div>
-        <div class="pl-3">
+      <v-btn v-if="unreadIndex[article.id]"
+        :color="unreadTypeClass[unreadIndex[article.id].type].color" 
+        absolute small top right fab
+        @click.native="setRead(article.id)">
+        <v-tooltip bottom >
+          <v-icon slot="activator" class="white--text">done</v-icon>
+          <span>{{unreadTypeClass[unreadIndex[article.id].type].tooltip}}</span>
+        </v-tooltip>
+      </v-btn>
+      <div class="pl-3">
           <p class="caption">
-            {{news.date}} {{news.time}} (
-            <a class="" target="_blank" v-bind:href="'//'+news.link">{{ news.source.name }}</a>)
+            {{profile}} {{article.date}} {{article.time}} (
+            <a v-if="source[article.idsource]" class="" target="_blank" v-bind:href="'//'+article.link">
+              {{ source[article.idsource].nm }} 
+            </a>)
+            <star-rating :inline="true" :star-size="20" :read-only="true" :show-rating="false" :rating="article.rating"></star-rating>
           </p>
-          <p class="body-1">{{news.lead}}</p>
+          <p class="body-1" v-if="article.paragraphs[0]">{{article.paragraphs[0].text}}</p>
         </div>
-        <span class="primary--text" v-for="rubric in news.rubrics" :key=rubric.id>
-          #{{ rubric.name }} 
-      </span>
-        <span :class="colorsTagList[tag.type.id]+'--text'" v-for="tag in news.tags" :key=tag.id>
-        #{{ tag.name }}
-       </span>
+        <template v-for="idRubric in article.rubrics">
+          <span v-if="rubric[idRubric]" class="primary--text caption"  :key=idRubric>
+            #{{ rubric[idRubric].nm }}
+          </span>
+        </template> 
+        <template v-for="idTag in article.tags">
+          <span v-if="tag[idTag]" :class="colorsTagList[tag[idTag].tp]+'--text caption'"  :key=idTag>
+            #{{ tag[idTag].nm }}
+          </span>
+        </template> 
      </span>
 </script>
 
@@ -23,11 +39,26 @@
 console.log ("newsViewHeader started");
 var newsViewHeader = {
     template: '#news-view-header-template',
-    props: ['news'],
-    computed: Vuex.mapGetters ([
-       "colorsTagList"
-    ])
+    props: ['article'],
+    components: {
+       StarRating: VueStarRating.default
+       },
+    methods: {
+      setRead: function (id) {
+          console.log ("news-view-header-template - setRead", id);
+          if (this.$store.getters.unreadIndex[id]) this.$store.dispatch("removeFromUnreadIndex", id);
+        }
+    },
+    computed: {
+      profile () { return this.$store.getters.profile; },
+      colorsTagList () { return this.$store.getters.colorsTagList; },
+      source () { return this.$store.getters.source; },
+      tag () { return this.$store.getters.tag; },
+      rubric () { return this.$store.getters.rubric; },
+      unreadIndex () { return this.$store.getters.unreadIndex; },
+      unreadTypeClass () { return  this.$store.getters.ui.unreadType; },  
+      }
 };
-//console.log ("newsViewHeader colors", this.colors);
+//console.log ("newsViewHeader colors", this.colors); tag[idTag].nm
 </script>
 

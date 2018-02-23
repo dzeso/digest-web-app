@@ -1,15 +1,52 @@
 <script type="text/x-template" id="news-view-template">
       <v-card>
           <v-card-title primary-title>
-             <news-view-header :news="news"></news-view-header>
+             <news-view-header :article="article"></news-view-header>
           </v-card-title>
         <v-card-text>          
-          <news-view-body :paragraphs="news.paragraphs"></news-view-body>
-          <news-view-references :references="news.references"></news-view-references>
+          <news-view-body :article="article"></news-view-body>
+          <news-view-references :article="article"></news-view-references>
         </v-card-text>
-        <v-card-actions>
-            <v-btn flat color="primary" @click.native="goBack">Обратно</v-btn>
-        </v-card-actions>
+        <v-card>
+          <v-toolbar color="primary">
+            <v-btn @click.native="goBack" icon>
+              <v-icon color="white">arrow_back</v-icon>
+            </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn icon>
+              <v-icon color="white">more_vert</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-container v-if="mode == 'edit'" fluid class="px-3">
+            <v-layout row wrap>
+            <v-flex xs12>
+              <star-rating v-if="rating" label="Рейтинг новости" v-model="rating" :show-rating="false"></star-rating>
+            </v-flex>
+            <v-flex xs12>
+              <v-select
+                :items="rubric"
+                v-model="selectedRubrics"
+                label="Укажите рубрики для новости"
+                multiple
+                chips
+                autocomplete
+                item-text="nm"
+                item-value="id"
+              ></v-select>
+            </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  label="Комментарий"
+                  :rules="[(v) => v.length <= 500 || 'Max 500 characters']"
+                  :counter="500"
+                  v-model="comment"
+                  multi-line
+                ></v-text-field>
+              </v-flex>
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-card>
       </v-card>
 </script>
 
@@ -17,6 +54,7 @@
 console.log ("newsView started");
 var newsView = {
     template: '#news-view-template', 
+    props: ['id', 'mode'],
     name: 'news-view',
     methods: {
       goBack () {
@@ -24,20 +62,46 @@ var newsView = {
       }
     },
     computed: {
-      news () {
-        console.log ("newsView", this.$route.params.id);
-        if (!this.$route.params.id) return {references: [], paragraphs: [], source: []}
-        else return this.$store.getters.newsById(+this.$route.params.id);
+      article () {
+        console.log ("newsView", this.id, this.mode);
+        let article = this.$store.getters.newsById(this.id);
+        if (!article) return {references: [], paragraphs: [], source: [], rubrics: []}
+        return article;
+        },
+        
+      rubric () {
+        return indexedObjectToArray(this.$store.getters.rubric);
         }
     },
     components: {
        NewsViewHeader: newsViewHeader,
        NewsViewBody: newsViewBody,
-       NewsViewReferences: newsViewReferences
-    },
+       NewsViewReferences: newsViewReferences,
+       StarRating: VueStarRating.default
+       },
+    activated: function () { 
+      console.log("newsView activated", this.article);
+      /* todo переписать на редактирование локальных данных пользователя*/
+      if (this.article.rubrics) this.selectedRubrics = this.article.rubrics;
+      if (this.article.rating) this.rating = this.article.rating;
+      if (this.article.comment) {
+        this.comment = this.article.comment.text;
+      }
+      console.log("newsView selectedRubrics", this.selectedRubrics);
+      },
+    deactivated: function () { 
+      const index = this.$store.getters.newsIndexById(this.id);
+      let article = this.article;
+      article.rubrics = this.selectedRubrics;
+      article.rating = this.rating;
+      this.$store.commit('updateNews', {news: article, index: index});
+      console.log("newsView deactivated");
+      },
     data () {
       return {
-        dialog: false
+        selectedRubrics: [],
+        comment: "",
+        rating: 0
       }
     }
 };

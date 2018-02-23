@@ -1,56 +1,150 @@
 <script>
 
-function setArrayToIndexedObjest(array) {
+// todo перенести потом в digest_util.js
+function arrayToIndexedObjeсt(array) {
 	let result = {};
-	for (let data of array) {
-	  result[data.id] = data;
-	  console.log ('result[data.id] = source', result[data.id]);
-	}
-    if (array.length>0) result.max = array[array.length-1].id;
-    console.log ('result.max', result.max);
+	for (let data of array) result[data.id] = data;
   return result;
 }
+
+function indexedObjectToArray(object) {
+    let result = [];
+      _.forEach(object, function(data) { if (data.id) result.push(data); });
+  return result;
+}
+
+function maxId(array) {
+  const result =  _.maxBy(array, 'id');
+  return result ? result.id : result;
+}
+
+function getNames(name) {
+  const refName = name.toLowerCase();
+  const refAction = _.camelCase('set_' + name);
+  return {name: refName, action: refAction};
+}
+
+function dateToText(param) {
+  let dateLength = 19,
+      date = new Date(Date.now()-(new Date()).getTimezoneOffset() * 60000),
+			result = date.toISOString();
+  if (param) {
+    if (param.dateLength) dateLength = param.dateLength;
+    if (param.date) date = new Date (new Date(param.date)-(new Date()).getTimezoneOffset() * 60000);
+		if (param.setTime) result = date.toISOString().slice(0, 11) + param.setTime;
+  }
+  return result.slice(0, dateLength);
+}
+
+function UNREAD_TYPE(param) {
+  switch(param) {
+    case "UNREAD": return 0;
+    case "NEW": return 1;
+    case "UPDATED": return 2;
+    case "EDITED": return 3;
+  }     
+};
+
 /* Справочники имеют структуру:
   obj[id] = (поля из базы},
-  obj.max = максимальное id значения
+  obj.lastId = максимальное id значения
+  obj.v = текущая весрия
 */
 var refs = {
   state: {
     source: {},
     rubric: {},
+    status: {},
+    tag: {},
+    tag_type: {},
     version: {}
   },
   getters: {
     source (state) { return state.source; },
     rubric (state) { return state.rubric; },
+    status (state) { return state.status; },
+    tag (state) { return state.tag; },
+    tag_type (state) { return state.tag_type; },
     version (state) { return state.version; },
    },
    mutations: {
      setRubric (state, data) { state.rubric = data; },
      setSource (state, data) { state.source = data; },
+     setStatus (state, data) { state.status = data; },
+     setTag (state, data) { state.tag = data; },
+     setTagType (state, data) { state.tag_type = data; },
      setVersion (state, data) { state.version = data; },
      setRefVersionValue (state, data) { 
-       if (data.value) state.version[data.ref][data.key] = data.value; 
+       if (data) state.version[data.ref][data.key] = data.value; 
+     },
+     updateRef (state, payload) { 
+     console.log ("updateRef", payload);
+       _.forEach(payload.data, function(data) {
+           state[payload.name].id = data;
+           });           
      }
    },
    actions: {
-     setVersion ({commit}, data) {
-       console.log ('setVersion ({commit}, data)', data);
-       commit('setVersion', data);
+   
+     setRefByName ({commit, getters}, payload) {
+       const {name,action} = getNames (payload.name);
+       let result = arrayToIndexedObjeсt(payload.data);
+       commit(action, result);
        },
-     setRefByName ({commit}, payload) {
-       const result = setArrayToIndexedObjest(payload.data),
-             refName = payload.name.toLowerCase();
-       const refAction = 'set' + refName.charAt(0).toUpperCase() + refName.substr(1);
-       console.log ( refAction + ' ({commit}, data)', result.max);
-       commit('setRefVersionValue', {
-         ref: refName,
-         key: 'id_local',
-         value: result.max
+       
+     readRefs ({commit, getters, dispatch}, payload) {
+       const request = [];
+       _.forEach(payload, function({name}) {
+         request.push ({db: getters.ls.db["refs"], table: name, sort: [["id"]]});  
+       });
+       console.log ("readRefs request",request);
+       return Promise.all( request.map(ls_async_ReadTable) )
+         .then(results => {
+           console.log ("readRefs ls_async_ReadTable",results);
+           _.forEach(payload, function({name}, i) {
+             dispatch("setRefByName", { data: results[i], name: name }); 
+           });
+         })
+         .catch((error) => {
+           console.error('readRefs', error);
+         }); 
+       },
+       
+     loadRefByName ({commit, getters, dispatch}, ref) {
+       if (ref === 'version') return;
+       const {v_local, v_server, id_local, id_server} = getters.version[ref];
+       const request = {
+         name: ref,
+         param: {version: v_local}}
+       if (v_local != v_server) request.param.version = v_server;
+       else if (id_local != id_server) request.param.lastId = id_local;
+       else return;
+       callGasSriptAsPromise().apiGetRef(request)
+         .then((results) => {   
+           console.log ('callGasSriptAsPromise().apiGetRef results', ref, results);
+           commit('setRefVersionValue', { ref: ref, key: 'v_local', value: v_server });
+           commit('setRefVersionValue', { ref: ref, key: 'id_local', value: maxId(results) });
+           ls_async_WriteTable ({ db: getters.ls.db["refs"], table: ref, index: "id", data: results });
+           ls_async_WriteTable ({ db: getters.ls.db["refs"], table: "version", index: "id", data: indexedObjectToArray(getters.version) });
+           commit("updateRef", { data: results, name: ref }); 
+           commit('setObjReactive', getters[ref]);
+           })
+         .catch((error) => {
+           console.error('loadRefByName', error);
+           });  
+       },
+       
+     setVersion ({commit, getters}, payload) {
+       console.log ("setVersion in", payload);
+       _.forEach(payload, function(data) {
+           commit('setRefVersionValue', { 
+             ref: data.id, key: 'id_server', value: data.last_id });
+           commit('setRefVersionValue', { 
+             ref: data.id, key: 'v_server', value: data.v });  
          });
-       commit(refAction, result);
+       console.log ("setVersion out", getters['version']);
        },
    }
 };
-console.log ("store_newsList started");
+console.log ("store_ref started");
 </script>

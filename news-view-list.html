@@ -4,16 +4,35 @@
 
 <script type="text/x-template" id="news-view-list-template">
   <v-expansion-panel popout class="">
-    <v-expansion-panel-content v-for="news in newsList" :key=news.id>
+    <v-expansion-panel-content lazy v-for="article in news" :key=article.id>
       <div slot="header">
-        <news-view-header :news="news"></news-view-header>
+        <news-view-header :article=article></news-view-header>
       </div>
       <v-card>
         <v-divider class="dark"></v-divider>
         <v-card-text>
-          <news-view-body :paragraphs="news.paragraphs"></news-view-body>
-          <news-view-references :references="news.references"></news-view-references>
+          <news-view-body :article=article></news-view-body>
+          <news-view-references :article="article"></news-view-references>
         </v-card-text>
+        <v-card-actions>      
+          <v-btn v-if="unreadIndex[article.id]"
+            small fab :color="unreadTypeClass[unreadIndex[article.id].type].color"
+            @click.native="setRead(article.id)">
+            <v-tooltip bottom >
+              <v-icon slot="activator" class="white--text">done</v-icon>
+              <span>{{unreadTypeClass[unreadIndex[article.id].type].tooltip}}</span>
+            </v-tooltip>
+          </v-btn>
+          <v-btn v-else
+            color="primary" outline small fab 
+            @click.native="setUnRead(article.id)">
+            <v-tooltip bottom >
+              <v-icon slot="activator">done</v-icon>
+              <span>пометить непрочитанной</span>
+            </v-tooltip>
+        </v-btn>
+            <v-btn outline fab small color="primary" :to="'/news/' + article.id + '/edit'"><v-icon>edit</v-icon></v-btn>        
+        </v-card-actions>
       </v-card>
     </v-expansion-panel-content>
   </v-expansion-panel>
@@ -28,34 +47,33 @@ var newsViewList = {
        NewsViewReferences: newsViewReferences
     },
     methods: {
+      setRead: function (id) {
+          console.log ("news-view-list-template - setRead", id);
+          if (this.$store.getters.unreadIndex[id]) this.$store.dispatch("removeFromUnreadIndex", id);
+        },
+      setUnRead: function (id) {
+          console.log ("news-view-list-template - setUnRead", id);
+          const unreadIndex = {id: id, type: UNREAD_TYPE('UNREAD')};
+          this.$store.commit("insertUnreadIndex", unreadIndex);
+          this.$store.commit('setObjReactive', this.$store.getters.unreadIndex);
+          console.log ("news-view-list-template - unreadIndex", unreadIndex);
+          ls_async_WriteTable({db: this.$store.getters.ls.db["news_config"], table: "unread", index: "id", data: [unreadIndex]});
+        }  
     },
-    computed: {...Vuex.mapGetters ([
-       "newsList"
-    ]),
-      newsList1() {
-        console.time("newsList1");
-        ls_async_OpenDb([{ name: "news"},{ name: "refs" }])
-          .then((connections) => {
-		       Promise.all([
-		          ls_async_ReadTable({db: connections["refs"], table: "source", sort: [["id"]]}),
-		          ls_async_ReadTable({db: connections["refs"], table: "rubric", sort: [["id"]]})
-		       ]).then((results) => {
-		            console.log('Справочники', results);    
-		       })
-		         .catch((error) => {
-		            console.error('ls_async_OpenDb', error);
-		       });
-		    })
-          .then((connections) => {
-		       console.timeEnd("newsList1");
-		    })  
-          .catch((error) => {
-		      console.error('ls_async_OpenDb', error);
-		  });
-        return this.$store.getters.newsList;
-      }
-    },
-    data: function () {
+    computed: {
+      
+      news () { 
+        console.log ("news-view-list-template - mode", this.$route.params.mode);
+        switch(this.$route.params.mode) {
+          case "unread": return this.$store.getters.unreadNews;
+          case "todo": return this.$store.getters.todoNews;
+          }
+        return this.$store.getters.news; 
+        },
+      unreadIndex () { return this.$store.getters.unreadIndex; },
+      unreadTypeClass () { return  this.$store.getters.ui.unreadType; },  
+      },      
+   data: function () {
       return {
         period: "тут будет указан период",
         filterState: "состояние фильтра",

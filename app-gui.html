@@ -1,8 +1,47 @@
+<style>
+  .custom-loader {
+    animation: loader 1s infinite;
+    display: flex;
+  }
+  @-moz-keyframes loader {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0);
+    }
+  }
+  @-webkit-keyframes loader {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0);
+    }
+  }
+  @-o-keyframes loader {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0);
+    }
+  }
+  @keyframes loader {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0);
+    }
+  }
+</style>
+
 <script type="text/x-template" id="gui-template"> 
-  <v-app id="digest" dark>
+  <v-app id="digest">
     <v-navigation-drawer
       fixed
-      clipped
+      :clipped="$vuetify.breakpoint.mdAndUp"
       app
       v-model="drawer"
     >
@@ -23,11 +62,14 @@
               <a href="#!" class="body-2 black--text">EDIT</a>
             </v-flex>
           </v-layout>
-          <v-list-group v-else-if="item.children" v-model="item.model" no-action>
-            <v-list-tile slot="item" @click="">
-              <v-list-tile-action>
-                <v-icon>{{ item.model ? item.icon : item['icon-alt'] }}</v-icon>
-              </v-list-tile-action>
+          <v-list-group
+            v-else-if="item.children"
+            v-model="item.model"
+            :key="item.text"
+            :prepend-icon="item.model ? item.icon : item['icon-alt']"
+            append-icon=""
+          >
+            <v-list-tile slot="activator">
               <v-list-tile-content>
                 <v-list-tile-title>
                   {{ item.text }}
@@ -50,60 +92,58 @@
                 </v-list-tile-title>
               </v-list-tile-content>
             </v-list-tile>
-        </v-list-group>
-        <v-list-tile v-else 
-            @click=""
-            :to="item.link">
-         <v-list-tile-action>
-            <v-icon>{{ item.icon }}</v-icon>
-         </v-list-tile-action>
-         <v-list-tile-content>
-            <v-list-tile-title>
-               {{ item.text }}
-            </v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
+          </v-list-group>
+          <v-list-tile v-else @click="" :key="item.text" :to="item.link">
+            <v-list-tile-action>
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title>
+                {{ item.text }}
+              </v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
         </template>
       </v-list>
     </v-navigation-drawer>
-    
     
     <v-toolbar
       color="blue darken-3"
       dark
       app
-      clipped-left
+      :clipped-left="$vuetify.breakpoint.mdAndUp"
       fixed
     >
-      <v-toolbar-title :style="$vuetify.breakpoint.smAndUp ? 'width: 300px; min-width: 250px' : 'min-width: 72px'" class="ml-0 pl-3">
+      <v-toolbar-title class="ml-0 pl-3">
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-        <span class="hidden-xs-only">Новости культуры</span>
+        <span class="hidden-xs-and-down">Digest</span>
       </v-toolbar-title>
-      <v-text-field
-        light
-        solo
-        prepend-icon="search"
-        placeholder="Search"
-        style="max-width: 500px; min-width: 128px"
-      ></v-text-field>
-      <div class="d-flex align-center" style="margin-left: auto">
-        <v-btn icon>
-          <v-icon>apps</v-icon>
-        </v-btn>
-        <v-btn icon>
+      <v-spacer></v-spacer>
+      <v-btn icon @click.stop="reloadNews" :loading="loading" :disabled="loading">
+        <v-badge color="error">
+          <span v-if="unloadedCount" slot="badge">{{ unloadedCount }}</span>
+          <v-icon>refresh</v-icon>
+        </v-badge>
+        <span slot="loader" class="custom-loader">
+          <v-icon light>cached</v-icon>
+        </span>
+      </v-btn>
+      <v-btn icon to="/news/list/all">
+        <v-badge color="success">
+          <span v-if="todoCount" slot="badge">{{ todoCount }}</span>
+          <v-icon>list</v-icon>
+        </v-badge>
+      </v-btn>
+      <v-btn icon to="/news/list/unread">
+        <v-badge color="warning">
+          <span v-if="unreadCount" slot="badge">{{ unreadCount }}</span>
           <v-icon>notifications</v-icon>
-        </v-btn>
-        <v-btn icon large>
-          <v-avatar size="32px" tile>
-            <img
-              src="https://vuetifyjs.com/static/doc-images/logo.svg"
-              alt="Vuetify"
-            >
-          </v-avatar>
-        </v-btn>
-      </div>
+        </v-badge>
+      </v-btn>
+      <v-btn icon>
+        <v-icon>person</v-icon>
+      </v-btn>
     </v-toolbar>
-    
     
     <v-content>
       <v-container fluid>
@@ -115,8 +155,7 @@
       </v-container>
     </v-content>
     
-    
-    <v-footer app class="mx-2">
+    <v-footer app class="pa-3">
       {{ ui.footer }}
       <v-spacer></v-spacer>
       <div>© {{ new Date().getFullYear() }}</div>
@@ -128,6 +167,7 @@
   var gui = {
     template: '#gui-template',
     data: () => ({
+      loading: false,
       drawer: null,
       items: [
         {
@@ -138,9 +178,9 @@
 //          active: true,
 //          inactive: true,
           children: [
-            { icon: 'notifications', text: 'Не прочитано', link: '/digest/news/list' },
-            { icon: 'inbox', text: 'В работе', link: '/digest' },
-            { icon: 'history', text: 'Архив', link: '/digest/test' }
+            { icon: 'notifications', text: 'Не прочитано', link: '/news/list/unread' },
+            { icon: 'inbox', text: 'В работе', link: '/news/list/todo' },
+            { icon: 'history', text: 'Архив', link: '/news/list/all' }
           ]
         },        
         { icon: 'person', text: 'Профайл' },
@@ -153,12 +193,39 @@
             { icon: 'add', text: 'Create label' }
           ]
         },
-        { icon: 'settings', text: 'Settings', link: '/digest/config' },
-        { icon: 'help', text: 'Help', link: '/digest/help' },
+        { icon: 'settings', text: 'Settings', link: '/config' },
+        { icon: 'help', text: 'Help', link: '/help' },
 
       ]
     }),
-    computed: Vuex.mapGetters (["ui"]),
+    computed: {
+      ui () {
+        return this.$store.getters.ui;
+      },
+      unreadCount () {
+        return Object.keys(this.$store.getters.unreadIndex).length;
+      },
+      todoCount () {
+        return this.$store.getters.todoCount;
+      },
+      unloadedCount () {
+        return this.$store.getters.unloadedCount;
+      },
+    },
+    methods: {
+      reloadNews: function () {
+        this.loading = true;
+        this.$store.dispatch('reloadNews');
+        this.$store.dispatch("uploadServer")
+          .then(() => {
+             this.loading = false;
+           })         
+           .catch((error) => {
+             this.loading = false;
+             console.error('reloadNews', error);
+           }); ;
+        }
+    },
     props: {
       source: String
     }

@@ -23,8 +23,9 @@ var test = {
         return this.$store.dispatch("readNewsFromLocalDb")
       }
     },
-    computed: { ...Vuex.mapGetters (["ls"])
-    },
+    computed: Vuex.mapGetters (["ls"]),
+//    computed: { ...Vuex.mapGetters (["ls"])
+//    },
     components: {
     },
     data () {
