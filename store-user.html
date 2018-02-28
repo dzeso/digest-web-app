@@ -1,0 +1,76 @@
+<script>
+var user = {
+  state: {
+     userProfile: {
+       id: 0, key: "",
+       name: "", config: {},
+       access: {}
+       },
+  },
+  getters: {
+     userProfile (state) {  
+       return state.userProfile;
+       },
+     isOnline (state) {  
+       return state.userProfile.id ? true : false;
+       },
+   },
+   mutations: {
+     setUserProfile (state, userProfile) {  
+       state.userProfile = userProfile;
+     },
+     setUserProfileProperty (state, property) {  
+       state.userProfile[property.key] = property.value;
+     },
+   },
+   actions: {
+     readUserProfile ({commit, getters}) {  
+       console.log ("----- readUserProfile старт");
+       ls_async_ReadTable({db: getters.ls.db["user_profile"], table: "profile"})
+         .then(profile => {
+           if (!profile.length) return null;
+           for (property of profile) commit('setUserProfileProperty', {
+               key: property.key, value: property.value
+               });
+           })
+         .catch((error) => {
+         // todo удалить после отладки и создания интерфейса для логина
+           console.error('readUserProfile ---', error);
+            });
+     },
+     
+     loadUserProfile ({commit, getters}, key) {  
+       console.log ("----- loadUserProfile старт", key);
+       return callGasSriptAsPromise().apiGetUserProfile({ command: "get profile", param: {key: key} })
+        .then((profile) => {
+          console.log ("apiGetUserProfile command: get profile", profile);
+          if (profile < 0) return profile;
+          commit('setUserProfile', profile);
+          ls_async_WriteTable( {db: getters.ls.db["user_profile"], table: "profile", index: "key", data: [{key: "key", value: profile.key}, {key: "config", value: profile.config}]} )
+           .then (result => {
+               console.log ("ls_async_WriteTable user_profile", result);
+               return result;
+           });
+           return 1;
+          })
+       .catch((error) => {
+         console.error('loadUserProfile', error);
+         return -1;
+          });
+     },
+     
+     askAccessKey ({commit, getters}, email) {  
+       console.log ("----- askAccessKey старт", email);
+       return callGasSriptAsPromise().apiGetUserProfile({command: "get key", param: {email: email}})
+        .then((result) => {
+          console.log ("apiGetUserProfile command: get key", result);
+          return result;
+          })
+       .catch((error) => {
+         console.error('askAccessKey', error);
+         return -1;
+          });
+     },   }
+};
+console.log ("store_user started");
+</script>

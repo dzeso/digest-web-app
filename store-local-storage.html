@@ -1,0 +1,127 @@
+<script>
+var local = {
+  state: {
+          ls: {db: undefined,
+          config: '',
+          dbStructure: 
+            [{ name: "news",
+                tables: [
+                { name: "news",
+                    fields: 
+                      ["id","title","idsource","rating","date","time","link",
+                      "last_edited","paragraphs","references","tags", "rubrics"]
+                }]
+             },
+              { name: "user_profile",
+                tables: [
+                { name: "unread", fields: ["id","type"]},
+                { name: "profile", fields: ["key","value"]} /* хранится key и config*/
+                  ]
+             },
+              { name: "refs",
+                  tables: [
+                    { name: "version", fields: ['id', 'v_local', 'v_server', 'id_local', 'id_server'] },
+                    { name: "rubric", fields: ['id', 'nm'] },
+                    { name: "status", fields: ['id', 'nm'] },
+                    { name: "tag", fields: ['id', 'nm', 'tp'] },
+                    { name: "tag_type", fields: ['id', 'nm'] },
+                    { name: "source", fields: ['id', 'nm'] }
+                  ]
+                }
+             ]
+          },
+  },
+  getters: {
+    ls (state) {  
+       return state.ls;
+       },
+   },
+   mutations: {
+     setLsDb (state, connections) {  
+       state.ls.db = connections;
+     },
+   },
+   actions: {
+    startLocalDb ({commit, dispatch, getters}) {
+      const tablesRef = getters.ls.dbStructure[_.findIndex(getters.ls.dbStructure, ['name', 'refs'])].tables;
+      ls_async_OpenDb(getters.ls.dbStructure)
+      // Сохраняем ссылку на коннект к базе
+        .then((connections) => {
+           commit('setLsDb', connections);
+           console.log ("startLocalDb - 1");
+           })
+      // читаем локальные справочники с диска в память
+        .then(() => {
+           return dispatch("readRefs", tablesRef);
+           }) 
+      // читаем локальные новости с диска в память и создаем индекс непрочитанных новостей
+        .then(() => {
+           return dispatch("readNews");
+           })     
+      // читаем профайл пользователя с локального хранилища
+         .then(() => {  
+           console.log ("-- call readUserProfile");
+           return dispatch("readUserProfile")
+           })
+//      // читаем текущий кей по почте
+//         .then((key) => {  
+//           console.log ("-- call askAccessKey", key);
+//           return dispatch("askAccessKey", "verderevsky.eot@gmail.com")
+//           })
+      // идентифицируем пользователя и если ок - получаем его профайл 
+         .then(() => {
+           console.log ("-- call loadUserProfile", getters.userProfile.key);
+           if (getters.userProfile.key) dispatch("loadUserProfile", getters.userProfile.key);
+            })      
+      // получаем актуальные номера версий с сервера
+         .then(() => {  
+           const request = {name: "version"};
+           if (getters.version["version"]) request.param = {version: getters.version["version"].v_server}; 
+           // если массив версий на локальном диске пуст - иницализируем его в памяти
+           else {
+             const result = [];
+             _.forEach(tablesRef, function({name}) {
+               if (name) result.push({id: name, v_local: 0, v_server: 0, id_local: 0, id_server: 0});  
+             });
+             dispatch("setRefByName", { data: result, name: "version" });
+           }
+           return callGasSriptAsPromise().apiGetRef(request);
+            })
+       // обновляем локальную таблицу версий в памяти
+        .then((result) => {
+           console.log ("setVersion - 7");
+           if (result.length) dispatch("setVersion", result);
+           else console.error('apiGetRef({ name: "version"})', 'Cервер не вернул таблицу версий');
+           })
+       // обновляем в пямяти справочники с сервера с учетом версий
+        .then(() => {
+           _.forEach(getters.version, function({id}) {
+               if (id) dispatch("loadRefByName", id);  
+             });
+             console.log ("loadRefByName - 8");
+           })            
+//       // получаем актуальные новости с сервера
+//        .then(() => {
+//           dispatch("reloadNews");
+//           console.log ("reloadNews - 9");
+//           })
+//        // Просим сервер обновить данные по новостям
+//        .then(() => {
+//          dispatch("uploadServer");
+//          console.log ("uploadServer - 4");
+//           })  
+        .catch((error) => {
+           commit('setFooter', "Локальные данные прочесть не удалось");
+           console.error('ls_async_OpenDb', error);
+           });     
+      },
+    updateLocalDb ({commit, dispatch, getters}) {      
+      if (!getters.ls.db) {
+        console.error('updateLocalDb', 'Локальная база данных не рабоает');
+        return;
+        }
+      },
+}
+};
+console.log ("store_user started");
+</script>

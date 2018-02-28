@@ -89,7 +89,7 @@ var news = {
        console.log ("readNews");
        return Promise.all([ 
          ls_async_ReadTable({db: getters.ls.db["news"], table: "news", sort: [["time", "DESC"],["date", "DESC"]]}),
-         ls_async_ReadTable({db: getters.ls.db["news_config"], table: "unread", sort: [["id"]]}) 
+         ls_async_ReadTable({db: getters.ls.db["user_profile"], table: "unread", sort: [["id"]]}) 
          ])
          .then(results => {
            if (results[0].length) commit('setNews', results[0]);
@@ -115,14 +115,14 @@ var news = {
          commit('insertUnreadIndex', unreadIndex[unreadIndex.length - 1]);
          }
          commit('setObjReactive', getters.unreadIndex);
-         ls_async_WriteTable({db: getters.ls.db["news_config"], table: "unread", index: "id", data: unreadIndex});
+         ls_async_WriteTable({db: getters.ls.db["user_profile"], table: "unread", index: "id", data: unreadIndex});
        },
        
      removeFromUnreadIndex ({commit, getters}, id) {
        console.log ("removeFromUreadIndex");
        commit("removeUnread", id);
        commit('setObjReactive', getters.unreadIndex);
-       ls_async_DeleteFromTable ({db: getters.ls.db["news_config"], table: "unread", where: {id: id}});
+       ls_async_DeleteFromTable ({db: getters.ls.db["user_profile"], table: "unread", where: {id: id}});
        },
        
      uploadServer ({commit, getters}) {

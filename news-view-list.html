@@ -57,7 +57,7 @@ var newsViewList = {
           this.$store.commit("insertUnreadIndex", unreadIndex);
           this.$store.commit('setObjReactive', this.$store.getters.unreadIndex);
           console.log ("news-view-list-template - unreadIndex", unreadIndex);
-          ls_async_WriteTable({db: this.$store.getters.ls.db["news_config"], table: "unread", index: "id", data: [unreadIndex]});
+          ls_async_WriteTable({db: this.$store.getters.ls.db["user_profile"], table: "unread", index: "id", data: [unreadIndex]});
         }  
     },
     computed: {

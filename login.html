@@ -1,0 +1,136 @@
+<style>
+</style>
+
+<script type="text/x-template" id="login-template"> 
+  <v-stepper v-model="loginStep" vertical>
+    <v-stepper-step step="1" :complete="loginStep > 1">
+      Введите ключ доступа
+      <small>Если вы не знаете ключ доступа, то пропустите этот шаг</small>
+    </v-stepper-step>
+    <v-stepper-content step="1">
+      <v-card color="light-blue lighten-5" class="mb-3">
+        <v-layout row wrap>
+          <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа"></v-text-field>
+          <v-text-field v-else class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа" :error-messages="errorMsg"></v-text-field>
+          <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loading" @click.native="sendKey">
+            Применить
+          </v-btn>
+        </v-layout>
+      </v-card>
+      <v-btn color="primary" @click.native="loginStep = 2">Дальше</v-btn>
+    </v-stepper-content>
+    <v-stepper-step step="2" :complete="loginStep > 2">
+      Введите email
+      <small>Если введенный email совпадет с указанным при регистрации, то на него быдет выслан ключ доступа</small></v-stepper-step>
+    <v-stepper-content step="2">
+      <v-card color="light-blue lighten-5" class="mb-3">
+        <v-layout row wrap>
+          <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model="email" label="email, указанный при регистрации" :rules="[rules.required, rules.email]"></v-text-field>
+          <v-text-field v-else :error-messages="errorMsg" class="mx-3" style="min-width: 200px" v-model="email" label="email, указанный при регистрации" :rules="[rules.required, rules.email]"></v-text-field>
+          <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loading" @click.native="sendEmail">Применить</v-btn>
+        </v-layout>
+      </v-card>
+      <v-btn color="primary" @click.native="loginStep = 1">Назад</v-btn>
+      <v-btn color="primary" @click.native="loginStep = 3">Дальше</v-btn>
+    </v-stepper-content>
+    <v-stepper-step step="3" :complete="loginStep > 3">
+      Подтвердите новый ключ доступа
+      <small>Он отправлен на указанный вами email. В письме даны все необходимые инструкции</small></v-stepper-step>
+    </v-stepper-step>
+    <v-stepper-content step="3">
+      <v-card color="light-blue lighten-5" class="mb-3">
+        <v-layout row wrap>
+          <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа"></v-text-field>
+          <v-text-field v-else class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа" :error-messages="errorMsg"></v-text-field>
+          <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loadinge" @click.native="sendKey">
+            Применить
+          </v-btn>
+        </v-layout>  
+      </v-card>
+      <v-btn color="primary" @click.native="loginStep = 2">Назад</v-btn>
+      <v-btn color="primary" @click.native="loginStep = 4">Дальше</v-btn>
+    </v-stepper-content>
+    <v-stepper-step step="4">
+      Что делать в случае проблем
+      <small>Если все прошло успешно, вы получили доступ к системе</small>
+    </v-stepper-step>
+    <v-stepper-content step="4">
+      <v-card color="light-blue lighten-5" class="mb-3">
+        <v-layout row wrap>
+          <v-card-text>
+           <p>
+             Что-то пошло не так. Повторите процедуру идентификации или свяжитесь с администратором системы. тут хорошо бы объяснить как и что делать если не получается.
+             Возможно дать возможность написать администратору системы сообщение.
+           </p>
+          </v-card-text>
+        </v-layout>
+      </v-card>
+      <v-btn color="primary" @click.native="loginStep = 3">Назад</v-btn>
+    </v-stepper-content>
+  </v-stepper>
+</script>
+
+<script>
+  var login = {
+    template: '#login-template',
+    data () {
+      return {
+        loginStep: 1,
+        loading: false,
+        key: userProfile.key,
+        errorMsg: "",
+        email: "",
+        rules: {
+          required: (value) => !!value || 'Required.',
+          email: (value) => {
+            const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            return pattern.test(value) || 'Invalid e-mail.'
+          }
+        }
+          
+      }
+    },
+    computed: {
+      userProfile () {
+        return this.$store.getters.userProfile;
+        },
+      isOnline () {
+        return this.$store.getters.isOnline;
+        },
+    },
+    methods: {
+      sendKey: function () {
+        this.errorMsg = "";
+        this.loading = true;
+        this.$store.dispatch("loadUserProfile", this.key)
+          .then((result) => {
+             this.loading = false;
+             if (result < 0) this.errorMsg = "Введенный ключ доступа - не действителен";
+             else this.$router.push('profile');
+           })         
+           .catch((error) => {
+             this.loading = false;
+             console.error('sendKey', error);
+           });
+        },
+    sendEmail: function () {
+        this.loading = true;
+        this.errorMsg = "";
+        this.$store.dispatch("askAccessKey", this.email)
+          .then((result) => {
+             this.loading = false;
+             if (result>0) this.loginStep = 3;
+             else this.errorMsg = "Введенный email - не зарегистрирован";
+             console.log('loadingEmail', result);
+           })         
+           .catch((error) => {
+             this.loading = false;
+             console.error('loadingEmail', error);
+           });
+        }
+    },
+  };
+console.log ("login started");
+</script>
+
+

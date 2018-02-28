@@ -21,15 +21,12 @@ function includeFromGoogleDrive(id) {
 }
 
 function apiGetNews(param) {
-  console.log('apiGetNews запустился');
   return ria.apiGetNews(param);
 }
 
 function apiGetRef(param) {
-  console.log('apiGetRef запустился');
   return ria.apiGetRef(param);
 }
-function apiGetUserProfile() {
-  console.log('apiGetUserProfile запустился');
-  return ria.apiGetUserProfile();
+function apiGetUserProfile(param) {
+  return ria.apiGetUserProfile(param);
 }

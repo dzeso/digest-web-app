@@ -14,7 +14,7 @@
       </v-btn>
       <div class="pl-3">
           <p class="caption">
-            {{profile}} {{article.date}} {{article.time}} (
+            {{user}} {{article.date}} {{article.time}} (
             <a v-if="source[article.idsource]" class="" target="_blank" v-bind:href="'//'+article.link">
               {{ source[article.idsource].nm }} 
             </a>)
@@ -50,7 +50,7 @@ var newsViewHeader = {
         }
     },
     computed: {
-      profile () { return this.$store.getters.profile; },
+      user () { return this.$store.getters.user; },
       colorsTagList () { return this.$store.getters.colorsTagList; },
       source () { return this.$store.getters.source; },
       tag () { return this.$store.getters.tag; },
