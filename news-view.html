@@ -7,48 +7,15 @@
           <news-view-body :article="article"></news-view-body>
           <news-view-references :article="article"></news-view-references>
         </v-card-text>
-        <v-card v-if="!isNewsReadonly(article)">
-          <v-toolbar color="primary">
-            <v-btn @click.native="goBack" icon>
+        <v-toolbar color="primary">
+           <v-btn @click.native="goBack" icon>
               <v-icon color="white">arrow_back</v-icon>
-            </v-btn>
-            <v-spacer></v-spacer>
-            <v-btn icon>
+           </v-btn>
+           <v-spacer></v-spacer>
+           <v-btn icon>
               <v-icon color="white">more_vert</v-icon>
-            </v-btn>
-          </v-toolbar>
-          <v-container v-if="mode == 'edit'" fluid class="px-3">
-            <v-layout row wrap>
-            <v-flex xs12>
-              <star-rating label="Рейтинг новости" v-model="rating" :show-rating="false" :read-only="readonly"></star-rating>
-            </v-flex>
-            <v-flex xs12>
-              <v-select
-                :items="rubric"
-                v-model="selectedRubrics"
-                label="Укажите рубрики для новости"
-                multiple
-                chips
-                autocomplete
-                item-text="nm"
-                item-value="id"
-                :readonly="readonly"
-              ></v-select>
-            </v-flex>
-              <v-flex xs12>
-                <v-text-field
-                  label="Комментарий"
-                  :rules="[(v) => v.length <= 1024 || 'Max 1024 characters']"
-                  :counter="1024"
-                  v-model="comment"
-                  multi-line
-                  :readonly="readonly"
-                ></v-text-field>
-              </v-flex>
-              </v-flex>
-            </v-layout>
-          </v-container>
-        </v-card>
+           </v-btn>
+         </v-toolbar>
       </v-card>
 </script>
 
@@ -56,68 +23,27 @@
 console.log ("newsView started");
 var newsView = {
     template: '#news-view-template', 
-    props: ['id', 'mode'],
+    props: ['id'],
     name: 'news-view',
     methods: {
       goBack () {
         return this.$router.go(-1)
       },
-      getEditedNews : function (id) {
-          console.log ("news-view-list-template - getEditedNews ", id);
-          return this.$store.getters.editedNews[id];
-        } 
     },
     computed: {
       article () {
-        console.log ("newsView", this.id, this.mode);
         let article = this.$store.getters.newsById(this.id);
         if (!article) return {references: [], paragraphs: [], source: [], rubrics: []}
         return article;
         },
-        
-      rubric () {
-        console.log ("newsView rubric", this.article);
-        return indexedObjectToArray(this.$store.getters.rubric);
-        },
-        
-      isNewsReadonly (article) {  
-       return (article) => {
-          return !this.$store.getters.userCanEdit && this.$store.getters.isNewsReadonly(article);
-          } 
-       },
     },
     components: {
        NewsViewHeader: newsViewHeader,
        NewsViewBody: newsViewBody,
        NewsViewReferences: newsViewReferences,
-       StarRating: VueStarRating.default
        },
-    activated: function () { 
-      let edited = this.getEditedNews (this.id)
-      console.log("newsView activated", edited);
-      if (edited) {
-        this.selectedRubrics = edited.rubrics;
-        this.rating = edited.rating;
-        this.comment = edited.comment;
-        }
-      else {
-        this.selectedRubrics = this.article.rubrics;
-        this.rating = 0;
-        this.comment = "";
-      }
-      },
-    deactivated: function () { 
-      console.log("newsView deactivated", this.id);
-      this.$store.dispatch('saveEditedNews', {
-        id: this.id, rubrics: this.selectedRubrics, rating: this.rating, comment: this.comment
-        });
-      },
     data () {
       return {
-        selectedRubrics: [],
-        comment: "",
-        rating: 0,
-        readonly: false
       }
     }
 };

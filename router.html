@@ -16,7 +16,12 @@ var router = new VueRouter ({
       component: newsViewList,
     },
     {
-      path: '/news/:id/:mode',
+      path: '/review/list/:mode',
+      name: 'newsReviewList',
+      component: newsReviewList,
+    },
+    {
+      path: '/news/:id',
       name: 'newsView',
       component: newsView,
       props: true

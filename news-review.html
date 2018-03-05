@@ -1,18 +1,27 @@
 <script type="text/x-template" id="news-review-template">
         <v-card v-if="!isNewsReadonly(article)">
           <v-toolbar color="primary">
-            <v-btn @click.native="goBack" icon>
-              <v-icon color="white">arrow_back</v-icon>
+            <v-btn @click.native="saveEdited" icon>
+              <v-icon color="white">save</v-icon>
+            </v-btn>
+            <v-btn @click.native="deleteEdited" icon>
+              <v-icon color="white">delete</v-icon>
             </v-btn>
             <v-spacer></v-spacer>
             <v-btn icon>
               <v-icon color="white">more_vert</v-icon>
             </v-btn>
           </v-toolbar>
-          <v-container v-if="mode == 'edit'" fluid class="px-3">
+          <v-container fluid class="px-3">
             <v-layout row wrap>
             <v-flex xs12>
-              <star-rating label="Рейтинг новости" v-model="rating" :show-rating="false" :read-only="readonly"></star-rating>
+              <star-rating 
+                label="Рейтинг новости" 
+                v-model="rating" 
+                :show-rating="false" 
+                :read-only="readonly" 
+                @rating-selected="saveData()"
+              ></star-rating>
             </v-flex>
             <v-flex xs12>
               <v-select
@@ -25,6 +34,7 @@
                 item-text="nm"
                 item-value="id"
                 :readonly="readonly"
+                @change="saveData()"
               ></v-select>
             </v-flex>
               <v-flex xs12>
@@ -32,9 +42,10 @@
                   label="Комментарий"
                   :rules="[(v) => v.length <= 1024 || 'Max 1024 characters']"
                   :counter="1024"
-                  v-model="comment"
+                  v-model.trim="comment"
                   multi-line
                   :readonly="readonly"
+                  @change="saveData()"
                 ></v-text-field>
               </v-flex>
               </v-flex>
@@ -45,22 +56,22 @@
 
 <script>
 console.log ("newsReview started");
-var newsView = {
+var newsReview = {
     template: '#news-review-template', 
     props: ['article'],
     name: 'news-review',
     methods: {
-      goBack () {
-        return this.$router.go(-1)
+      saveEdited () {
+        return ;
+      },
+      saveData () {
+        console.log("newsReview deactivated", this.article.id);
+        this.$store.dispatch('saveEditedNews', {
+          id: this.article.id, rubrics: this.selectedRubrics, rating: this.rating, comment: this.comment
+          });
       },
     },
     computed: {
-//      article () {
-//        console.log ("newsReview", this.id, this.mode);
-//        let article = this.$store.getters.newsById(this.id);
-//        if (!article) return {references: [], paragraphs: [], source: [], rubrics: []}
-//        return article;
-//        },
         
       rubric () {
         console.log ("newsReview rubric", this.article);
@@ -76,31 +87,11 @@ var newsView = {
     components: {
        StarRating: VueStarRating.default
        },
-    activated: function () { 
-      let edited = this.$store.getters.editedNews[this.article.id];
-      console.log("newsReview activated", edited);
-      if (edited) {
-        this.selectedRubrics = edited.rubrics;
-        this.rating = edited.rating;
-        this.comment = edited.comment;
-        }
-      else {
-        this.selectedRubrics = this.article.rubrics;
-        this.rating = 0;
-        this.comment = "";
-      }
-      },
-    deactivated: function () { 
-      console.log("newsReview deactivated", this.article.id);
-      this.$store.dispatch('saveEditedNews', {
-        id: this.article.id, rubrics: this.selectedRubrics, rating: this.rating, comment: this.comment
-        });
-      },
     data () {
       return {
-        selectedRubrics: [],
-        comment: "",
-        rating: 0,
+        selectedRubrics: this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].rubrics : this.article.rubrics,
+        comment:  this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].comment : "",
+        rating: this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].rating : 0,
         readonly: false
       }
     }

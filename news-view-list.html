@@ -14,25 +14,6 @@
           <news-view-body :article=article></news-view-body>
           <news-view-references :article="article"></news-view-references>
         </v-card-text>
-        <v-card-actions v-if="!isNewsReadonly(article)">      
-          <v-btn v-if="unreadIndex[article.id]"
-            small fab :color="unreadTypeClass[unreadIndex[article.id].type].color"
-            @click.native="setRead(article.id)">
-            <v-tooltip bottom >
-              <v-icon slot="activator" class="white--text">done</v-icon>
-              <span>{{unreadTypeClass[unreadIndex[article.id].type].tooltip}}</span>
-            </v-tooltip>
-          </v-btn>
-          <v-btn v-else
-            color="primary" outline small fab 
-            @click.native="setUnRead(article.id)">
-            <v-tooltip bottom >
-              <v-icon slot="activator">done</v-icon>
-              <span>пометить непрочитанной</span>
-            </v-tooltip>
-        </v-btn>
-            <v-btn outline fab small color="primary" :to="'/news/' + article.id + '/edit'"><v-icon>edit</v-icon></v-btn>        
-        </v-card-actions>
       </v-card>
       <news-review :article=article></news-review>
     </v-expansion-panel-content>
@@ -45,6 +26,7 @@ var newsViewList = {
     components: {
        NewsViewHeader: newsViewHeader,
        NewsViewBody: newsViewBody,
+       NewsReview: newsReview,
        NewsViewReferences: newsViewReferences
     },
     methods: {

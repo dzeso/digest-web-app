@@ -1,4 +1,29 @@
-             <v-btn v-if="unreadIndex[article.id]"
+      goBack () {
+        return this.$router.go(-1)
+      },
+
+
+<v-card-actions v-if="!isNewsReadonly(article)">      
+          <v-btn v-if="unreadIndex[article.id]"
+            small fab :color="unreadTypeClass[unreadIndex[article.id].type].color"
+            @click.native="setRead(article.id)">
+            <v-tooltip bottom >
+              <v-icon slot="activator" class="white--text">done</v-icon>
+              <span>{{unreadTypeClass[unreadIndex[article.id].type].tooltip}}</span>
+            </v-tooltip>
+          </v-btn>
+          <v-btn v-else
+            color="primary" outline small fab 
+            @click.native="setUnRead(article.id)">
+            <v-tooltip bottom >
+              <v-icon slot="activator">done</v-icon>
+              <span>пометить непрочитанной</span>
+            </v-tooltip>
+        </v-btn>
+            <v-btn outline fab small color="primary" :to="'/news/' + article.id + '/edit'"><v-icon>edit</v-icon></v-btn>        
+        </v-card-actions>
+
+<v-btn v-if="unreadIndex[article.id]"
                 :color="unreadTypeClass[unreadIndex[article.id].type].color" 
                 absolute outline small top right fab 
                 @click.native="setRead(article.id)">

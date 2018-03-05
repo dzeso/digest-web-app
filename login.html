@@ -9,8 +9,8 @@
     <v-stepper-content step="1">
       <v-card color="light-blue lighten-5" class="mb-3">
         <v-layout row wrap>
-          <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model="email" label="email, указанный при регистрации" :rules="[rules.required, rules.email]"></v-text-field>
-          <v-text-field v-else :error-messages="errorMsg" class="mx-3" style="min-width: 200px" v-model="email" label="email, указанный при регистрации" :rules="[rules.required, rules.email]"></v-text-field>
+          <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model.trim="email" label="email, указанный при регистрации" :rules="[rules.required, rules.email]"></v-text-field>
+          <v-text-field v-else :error-messages="errorMsg" class="mx-3" style="min-width: 200px" v-model.trim="email" label="email, указанный при регистрации" :rules="[rules.required, rules.email]"></v-text-field>
           <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loading" @click.native="sendEmail">Применить</v-btn>
         </v-layout>
       </v-card>
@@ -23,8 +23,8 @@
     <v-stepper-content step="2">
       <v-card color="light-blue lighten-5" class="mb-3">
         <v-layout row wrap>
-          <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа"></v-text-field>
-          <v-text-field v-else class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа" :error-messages="errorMsg"></v-text-field>
+          <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model.trim="key" label="Ключ доступа"></v-text-field>
+          <v-text-field v-else class="mx-3" style="min-width: 200px" v-model.trim="key" label="Ключ доступа" :error-messages="errorMsg"></v-text-field>
           <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loading" @click.native="sendKey">
             Применить
           </v-btn>
@@ -85,7 +85,7 @@
       sendKey: function () {
         this.errorMsg = "";
         this.loading = true;
-        this.key = this.key.trim();
+//        this.key = this.key.trim();
         this.$store.dispatch("loadUserProfile", this.key)
           .then((result) => {
              this.loading = false;
@@ -100,7 +100,7 @@
     sendEmail: function () {
         this.loading = true;
         this.errorMsg = "";
-        this.email = this.email.trim();
+//        this.email = this.email.trim();
         this.$store.dispatch("askAccessKey", this.email)
           .then((result) => {
              this.loading = false;
