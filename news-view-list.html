@@ -3,8 +3,8 @@
 </style>
 
 <script type="text/x-template" id="news-view-list-template">
-  <v-expansion-panel popout class="">
-    <v-expansion-panel-content lazy v-for="article in news" :key=article.id>
+  <v-expansion-panel popout>
+    <v-expansion-panel-content lazy v-for="article in news" :key=article.id @input="log($event, article.id)">
       <div slot="header">
         <news-view-header :article=article></news-view-header>
       </div>
@@ -14,7 +14,7 @@
           <news-view-body :article=article></news-view-body>
           <news-view-references :article="article"></news-view-references>
         </v-card-text>
-        <v-card-actions>      
+        <v-card-actions v-if="!isNewsReadonly(article)">      
           <v-btn v-if="unreadIndex[article.id]"
             small fab :color="unreadTypeClass[unreadIndex[article.id].type].color"
             @click.native="setRead(article.id)">
@@ -34,6 +34,7 @@
             <v-btn outline fab small color="primary" :to="'/news/' + article.id + '/edit'"><v-icon>edit</v-icon></v-btn>        
         </v-card-actions>
       </v-card>
+      <news-review :article=article></news-review>
     </v-expansion-panel-content>
   </v-expansion-panel>
 </script>
@@ -47,6 +48,9 @@ var newsViewList = {
        NewsViewReferences: newsViewReferences
     },
     methods: {
+      log (v, i) {
+        console.log(v, i)
+      },
       setRead: function (id) {
           console.log ("news-view-list-template - setRead", id);
           if (this.$store.getters.unreadIndex[id]) this.$store.dispatch("removeFromUnreadIndex", id);
@@ -71,8 +75,14 @@ var newsViewList = {
         return this.$store.getters.news; 
         },
       unreadIndex () { return this.$store.getters.unreadIndex; },
-      unreadTypeClass () { return  this.$store.getters.ui.unreadType; },  
-      },      
+      unreadTypeClass () { return  this.$store.getters.ui.unreadType; },
+      isNewsReadonly (article) {  
+       return (article) => {
+          return !this.$store.getters.userCanEdit && this.$store.getters.isNewsReadonly(article);
+          } 
+       },
+      
+      },    
    data: function () {
       return {
         period: "тут будет указан период",

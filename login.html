@@ -4,25 +4,9 @@
 <script type="text/x-template" id="login-template"> 
   <v-stepper v-model="loginStep" vertical>
     <v-stepper-step step="1" :complete="loginStep > 1">
-      Введите ключ доступа
-      <small>Если вы не знаете ключ доступа, то пропустите этот шаг</small>
-    </v-stepper-step>
-    <v-stepper-content step="1">
-      <v-card color="light-blue lighten-5" class="mb-3">
-        <v-layout row wrap>
-          <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа"></v-text-field>
-          <v-text-field v-else class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа" :error-messages="errorMsg"></v-text-field>
-          <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loading" @click.native="sendKey">
-            Применить
-          </v-btn>
-        </v-layout>
-      </v-card>
-      <v-btn color="primary" @click.native="loginStep = 2">Дальше</v-btn>
-    </v-stepper-content>
-    <v-stepper-step step="2" :complete="loginStep > 2">
       Введите email
-      <small>Если введенный email совпадет с указанным при регистрации, то на него быдет выслан ключ доступа</small></v-stepper-step>
-    <v-stepper-content step="2">
+      <small>Для получения ключа доступа введите email, указанный при регистрации. Если ключ у вас есть, то этот шаг можно пропустить</small></v-stepper-step>
+    <v-stepper-content step="1">
       <v-card color="light-blue lighten-5" class="mb-3">
         <v-layout row wrap>
           <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model="email" label="email, указанный при регистрации" :rules="[rules.required, rules.email]"></v-text-field>
@@ -30,31 +14,30 @@
           <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loading" @click.native="sendEmail">Применить</v-btn>
         </v-layout>
       </v-card>
-      <v-btn color="primary" @click.native="loginStep = 1">Назад</v-btn>
-      <v-btn color="primary" @click.native="loginStep = 3">Дальше</v-btn>
+      <v-btn color="primary" @click.native="loginStep = 2">Дальше</v-btn>
     </v-stepper-content>
-    <v-stepper-step step="3" :complete="loginStep > 3">
-      Подтвердите новый ключ доступа
-      <small>Он отправлен на указанный вами email. В письме даны все необходимые инструкции</small></v-stepper-step>
+    <v-stepper-step step="2" :complete="loginStep > 2">
+      Введите ключ доступа
+      <small>Ключ доступа был отправлен на {{email}}. В письме даны все необходимые инструкции</small></v-stepper-step>
     </v-stepper-step>
-    <v-stepper-content step="3">
+    <v-stepper-content step="2">
       <v-card color="light-blue lighten-5" class="mb-3">
         <v-layout row wrap>
           <v-text-field v-if="errorMsg.length<1" class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа"></v-text-field>
           <v-text-field v-else class="mx-3" style="min-width: 200px" v-model="key" label="Ключ доступа" :error-messages="errorMsg"></v-text-field>
-          <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loadinge" @click.native="sendKey">
+          <v-btn flat class="my-3 mr-3" :loading="loading" :disabled="loading" @click.native="sendKey">
             Применить
           </v-btn>
         </v-layout>  
       </v-card>
-      <v-btn color="primary" @click.native="loginStep = 2">Назад</v-btn>
-      <v-btn color="primary" @click.native="loginStep = 4">Дальше</v-btn>
+      <v-btn color="primary" @click.native="loginStep = 1">Назад</v-btn>
+      <v-btn color="primary" @click.native="loginStep = 3">Дальше</v-btn>
     </v-stepper-content>
-    <v-stepper-step step="4">
+    <v-stepper-step step="3">
       Что делать в случае проблем
       <small>Если все прошло успешно, вы получили доступ к системе</small>
     </v-stepper-step>
-    <v-stepper-content step="4">
+    <v-stepper-content step="3">
       <v-card color="light-blue lighten-5" class="mb-3">
         <v-layout row wrap>
           <v-card-text>
@@ -65,7 +48,7 @@
           </v-card-text>
         </v-layout>
       </v-card>
-      <v-btn color="primary" @click.native="loginStep = 3">Назад</v-btn>
+      <v-btn color="primary" @click.native="loginStep = 2">Назад</v-btn>
     </v-stepper-content>
   </v-stepper>
 </script>
@@ -79,7 +62,7 @@
         loading: false,
         key: userProfile.key,
         errorMsg: "",
-        email: "",
+        email: userProfile.email,
         rules: {
           required: (value) => !!value || 'Required.',
           email: (value) => {
@@ -102,6 +85,7 @@
       sendKey: function () {
         this.errorMsg = "";
         this.loading = true;
+        this.key = this.key.trim();
         this.$store.dispatch("loadUserProfile", this.key)
           .then((result) => {
              this.loading = false;
@@ -116,16 +100,16 @@
     sendEmail: function () {
         this.loading = true;
         this.errorMsg = "";
+        this.email = this.email.trim();
         this.$store.dispatch("askAccessKey", this.email)
           .then((result) => {
              this.loading = false;
-             if (result>0) this.loginStep = 3;
+             if (result>0) this.loginStep = 2;
              else this.errorMsg = "Введенный email - не зарегистрирован";
-             console.log('loadingEmail', result);
            })         
            .catch((error) => {
              this.loading = false;
-             console.error('loadingEmail', error);
+             console.error('sendEmail', error);
            });
         }
     },

@@ -7,18 +7,19 @@
       >
         <v-layout row wrap>
           <v-flex xs12>
-            <v-card>
+            <v-card color="brown lighten-5" class="mb-3">
               <v-card-title primary-title>
-                <div class="headline">{{userProfile.name}}</div>
+                <div class="headline">{{userProfile.name}} ({{userProfile.email}})</div>
               </v-card-title>
               <v-card-text>
+                <div>Права доступа: чтение и комментирование</div>
                 <div>Последнее обновление: {{lastDate}}</div>
                 <div>Непрочитано: {{unreadCount}}</div>
                 <div>Необработано: {{todoCount}}</div>
                 <div>Незагружено: {{unloadedCount}}</div>
               </v-card-text>
               <v-card-actions>
-                <v-btn v-if="isOnline" flat>Logout</v-btn>
+                <v-btn v-if="isOnline" flat @click.native="logOut">Logout</v-btn>
                 <v-btn v-else flat to="/login">Login</v-btn>
                 <v-spacer></v-spacer>
                 <v-btn icon @click.native="show = !show">
@@ -39,19 +40,18 @@
             </v-card>
           </v-flex>
           <v-flex xs12>
-            <v-card color="cyan darken-2" class="white--text">
-              <v-container fluid grid-list-lg>
-                <v-layout row>
-                </v-layout>
-              </v-container>
-            </v-card>
-          </v-flex>
-          <v-flex xs12>
-            <v-card color="purple" class="white--text">
-              <v-container fluid grid-list-lg>
-                <v-layout row>
-                </v-layout>
-              </v-container>
+            <v-card color="brown lighten-5" class="mb-3">
+              <v-card-title primary-title>
+                <div class="headline">Параметры</div>
+              </v-card-title>
+              <v-card-text>
+                <div>Тут будут настройки интерфеса</div>
+                  <v-container fluid>
+                   <p>{{ config }}</p>
+                   <v-switch label="Сделать круто" v-model="config" value="Круто"></v-switch>
+                   <v-switch label="Сделать офигенно" v-model="config" value="Офигенно"></v-switch>
+                  </v-container>
+              </v-card-text>
             </v-card>
           </v-flex>
         </v-layout>
@@ -65,7 +65,8 @@
     template: '#user-profile-template',
     data () {
       return {
-        show: false
+        show: false,
+        config: []
       }
     },
     computed: {
@@ -88,6 +89,11 @@
         return this.$store.getters.isOnline;
         },
     },
+    methods: {
+      logOut: function () {
+        this.$store.dispatch("logOut");
+        },
+      }
   };
 console.log ("user-profile started");
 </script>

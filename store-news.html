@@ -3,11 +3,15 @@ var news = {
   state: {
     news: [],
     unreadIndex: {},
+    editedNews: {},
     unloadedCount: 0
   },
   getters: {
     news (state) {  
        return _.reverse(_.sortBy(state.news, ['date', 'time']));
+       },
+    editedNews (state) {  
+       return state.editedNews;
        },
     todoCount (state) {  
        return state.news.length;
@@ -52,11 +56,30 @@ var news = {
              return news.id == newsId})
           } 
        },
+    isNewsReadonly (state, article) {  
+       return (article) => {
+          return article.rating ? true : false
+          } 
+       },
    },
    mutations: {
-     setNews (state, news) {
-       console.log ("setNews", news);
-       state.news = news;
+     setEditedNews (state, data) {
+       console.log ("setEditedNews", data);
+       state.editedNews = arrayToIndexedObjeсt(data);
+     },
+     removeEditedNews (state, id) {
+       delete state.editedNews[id];
+       console.log ("removeEditedNews", state.unreadIndex);
+     },
+     saveEditedNews (state, data) {
+       console.log ("saveEditedNews - state.editedNews", state.editedNews);
+       if (state.editedNews[data.id]) {
+         state.editedNews[data.id].id = data.id;
+         state.editedNews[data.id].rubrics = data.rubrics;
+         state.editedNews[data.id].rating = data.rating;
+         state.editedNews[data.id].comment = data.comment;
+         }
+       else state.editedNews[data.id] = data;
      },
      removeUnread (state, id) {
        delete state.unreadIndex[id];
@@ -74,6 +97,10 @@ var news = {
        state.unloadedCount = data;
        console.log ("setUnloadedCount", state.unloadedCount);
      },
+     setNews (state, news) {
+       console.log ("setNews", news);
+       state.news = news;
+     },
      updateNews (state, data) {
        state.news[data.index] = data.news; 
        console.log ("updateNews", data.news, data.index);
@@ -85,16 +112,31 @@ var news = {
    },
    actions: {
    
+     saveEditedNews ({commit, getters}, data) {
+       commit('saveEditedNews', data);
+       ls_async_WriteTable({db: getters.ls.db["user_profile"], table: "edited", index: "id", data: [data]})
+         .catch((error) => {
+           console.error('saveEditedNews', error);
+           });
+       console.log ("saveEditedNews");
+       return;      
+       },
+       
      readNews ({commit, getters}) {
        console.log ("readNews");
        return Promise.all([ 
          ls_async_ReadTable({db: getters.ls.db["news"], table: "news", sort: [["time", "DESC"],["date", "DESC"]]}),
-         ls_async_ReadTable({db: getters.ls.db["user_profile"], table: "unread", sort: [["id"]]}) 
+         ls_async_ReadTable({db: getters.ls.db["user_profile"], table: "edited", sort: [["id"]]}),
+         ls_async_ReadTable({db: getters.ls.db["user_profile"], table: "unread", sort: [["id"]]}), 
          ])
          .then(results => {
            if (results[0].length) commit('setNews', results[0]);
            if (results[1].length) {
-             commit('setUnreadIndex', results[1]);
+             commit('setEditedNews', results[1]);
+             commit('setObjReactive', getters.editedNews);
+           }
+           if (results[2].length) {
+             commit('setUnreadIndex', results[2]);
              commit('setObjReactive', getters.unreadIndex);
            }
          })
@@ -115,7 +157,10 @@ var news = {
          commit('insertUnreadIndex', unreadIndex[unreadIndex.length - 1]);
          }
          commit('setObjReactive', getters.unreadIndex);
-         ls_async_WriteTable({db: getters.ls.db["user_profile"], table: "unread", index: "id", data: unreadIndex});
+         ls_async_WriteTable({db: getters.ls.db["user_profile"], table: "unread", index: "id", data: unreadIndex})
+           .catch((error) => {
+             console.error('updateNews', error);
+             });
        },
        
      removeFromUnreadIndex ({commit, getters}, id) {

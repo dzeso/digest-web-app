@@ -2,7 +2,7 @@
 var user = {
   state: {
      userProfile: {
-       id: 0, key: "",
+       id: 0, key: "", email: "",
        name: "", config: {},
        access: {}
        },
@@ -13,6 +13,9 @@ var user = {
        },
      isOnline (state) {  
        return state.userProfile.id ? true : false;
+       },
+     userCanEdit (state) {  
+       return state.userProfile.access ? !!(+state.userProfile.access["edit"]) : false;
        },
    },
    mutations: {
@@ -46,8 +49,8 @@ var user = {
           console.log ("apiGetUserProfile command: get profile", profile);
           if (profile < 0) return profile;
           commit('setUserProfile', profile);
-          ls_async_WriteTable( {db: getters.ls.db["user_profile"], table: "profile", index: "key", data: [{key: "key", value: profile.key}, {key: "config", value: profile.config}]} )
-           .then (result => {
+          ls_async_WriteTable( {db: getters.ls.db["user_profile"], table: "profile", index: "key", data: [{key: "key", value: profile.key}]} )
+            .then (result => {
                console.log ("ls_async_WriteTable user_profile", result);
                return result;
            });
@@ -57,6 +60,16 @@ var user = {
          console.error('loadUserProfile', error);
          return -1;
           });
+     },
+     
+     logOut ({commit, getters}) {  
+       console.log ("----- logOut старт");
+       commit('setUserProfile', { id: 0, key: "", mail: "", name: "", config: {}, access: {}});
+       return ls_async_DeleteFromTable ({db: getters.ls.db["user_profile"], table: "profile"})
+         .catch((error) => {
+           console.error('logOut', error);
+           return -1;
+            });
      },
      
      askAccessKey ({commit, getters}, email) {  

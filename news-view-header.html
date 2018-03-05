@@ -18,7 +18,7 @@
             <a v-if="source[article.idsource]" class="" target="_blank" v-bind:href="'//'+article.link">
               {{ source[article.idsource].nm }} 
             </a>)
-            <star-rating :inline="true" :star-size="20" :read-only="true" :show-rating="false" :rating="article.rating"></star-rating>
+            <star-rating v-if="article.rating" :inline="true" :star-size="20" :read-only="true" :show-rating="false" :rating="article.rating"></star-rating>
           </p>
           <p class="body-1" v-if="article.paragraphs[0]">{{article.paragraphs[0].text}}</p>
         </div>

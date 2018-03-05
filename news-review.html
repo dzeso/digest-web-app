@@ -1,12 +1,4 @@
-<script type="text/x-template" id="news-view-template">
-      <v-card>
-          <v-card-title primary-title>
-             <news-view-header :article="article"></news-view-header>
-          </v-card-title>
-        <v-card-text>          
-          <news-view-body :article="article"></news-view-body>
-          <news-view-references :article="article"></news-view-references>
-        </v-card-text>
+<script type="text/x-template" id="news-review-template">
         <v-card v-if="!isNewsReadonly(article)">
           <v-toolbar color="primary">
             <v-btn @click.native="goBack" icon>
@@ -49,34 +41,29 @@
             </v-layout>
           </v-container>
         </v-card>
-      </v-card>
 </script>
 
 <script>
-console.log ("newsView started");
+console.log ("newsReview started");
 var newsView = {
-    template: '#news-view-template', 
-    props: ['id', 'mode'],
-    name: 'news-view',
+    template: '#news-review-template', 
+    props: ['article'],
+    name: 'news-review',
     methods: {
       goBack () {
         return this.$router.go(-1)
       },
-      getEditedNews : function (id) {
-          console.log ("news-view-list-template - getEditedNews ", id);
-          return this.$store.getters.editedNews[id];
-        } 
     },
     computed: {
-      article () {
-        console.log ("newsView", this.id, this.mode);
-        let article = this.$store.getters.newsById(this.id);
-        if (!article) return {references: [], paragraphs: [], source: [], rubrics: []}
-        return article;
-        },
+//      article () {
+//        console.log ("newsReview", this.id, this.mode);
+//        let article = this.$store.getters.newsById(this.id);
+//        if (!article) return {references: [], paragraphs: [], source: [], rubrics: []}
+//        return article;
+//        },
         
       rubric () {
-        console.log ("newsView rubric", this.article);
+        console.log ("newsReview rubric", this.article);
         return indexedObjectToArray(this.$store.getters.rubric);
         },
         
@@ -87,14 +74,11 @@ var newsView = {
        },
     },
     components: {
-       NewsViewHeader: newsViewHeader,
-       NewsViewBody: newsViewBody,
-       NewsViewReferences: newsViewReferences,
        StarRating: VueStarRating.default
        },
     activated: function () { 
-      let edited = this.getEditedNews (this.id)
-      console.log("newsView activated", edited);
+      let edited = this.$store.getters.editedNews[this.article.id];
+      console.log("newsReview activated", edited);
       if (edited) {
         this.selectedRubrics = edited.rubrics;
         this.rating = edited.rating;
@@ -107,9 +91,9 @@ var newsView = {
       }
       },
     deactivated: function () { 
-      console.log("newsView deactivated", this.id);
+      console.log("newsReview deactivated", this.article.id);
       this.$store.dispatch('saveEditedNews', {
-        id: this.id, rubrics: this.selectedRubrics, rating: this.rating, comment: this.comment
+        id: this.article.id, rubrics: this.selectedRubrics, rating: this.rating, comment: this.comment
         });
       },
     data () {
