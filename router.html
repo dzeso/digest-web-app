@@ -14,9 +14,10 @@ var router = new VueRouter ({
       path: '/news/list/:mode',
       name: 'newsViewList',
       component: newsViewList,
+      props: true
     },
     {
-      path: '/review/list/:mode',
+      path: '/review/list',
       name: 'newsReviewList',
       component: newsReviewList,
     },
@@ -51,7 +52,7 @@ var router = new VueRouter ({
       name: 'help',
       component: test,
     },
-    { path: '*', redirect: '/news/list/unread' }
+    { path: '*', redirect: '/review/list' }
   ]
 });
 console.log ("router started", router);

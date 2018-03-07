@@ -3,18 +3,14 @@
         <div class="py-3">
           <h6 class="title"><span class="primary--text">{{article.title}}</span></h6>
         </div>
-      <v-btn v-if="unreadIndex[article.id]"
-        :color="unreadTypeClass[unreadIndex[article.id].type].color" 
-        absolute small top right fab
-        @click.native="setRead(article.id)">
-        <v-tooltip bottom >
-          <v-icon slot="activator" class="white--text">done</v-icon>
-          <span>{{unreadTypeClass[unreadIndex[article.id].type].tooltip}}</span>
-        </v-tooltip>
-      </v-btn>
       <div class="pl-3">
           <p class="caption">
-            {{user}} {{article.date}} {{article.time}} (
+            <span v-if="unreadIndex[article.id]">
+              <v-tooltip top>
+                <v-icon slot="activator" :color="unreadTypeClass[unreadIndex[article.id].type].color">fiber_new</v-icon>
+                <span>{{unreadTypeClass[unreadIndex[article.id].type].tooltip}}</span>
+              </v-tooltip>
+            </span> {{article.date}} {{article.time}} (
             <a v-if="source[article.idsource]" class="" target="_blank" v-bind:href="'//'+article.link">
               {{ source[article.idsource].nm }} 
             </a>)
@@ -44,13 +40,8 @@ var newsViewHeader = {
        StarRating: VueStarRating.default
        },
     methods: {
-      setRead: function (id) {
-          console.log ("news-view-header-template - setRead", id);
-          if (this.$store.getters.unreadIndex[id]) this.$store.dispatch("removeFromUnreadIndex", id);
-        }
     },
     computed: {
-      user () { return this.$store.getters.user; },
       colorsTagList () { return this.$store.getters.colorsTagList; },
       source () { return this.$store.getters.source; },
       tag () { return this.$store.getters.tag; },

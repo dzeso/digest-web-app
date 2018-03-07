@@ -5,7 +5,6 @@
 <script type="text/x-template" id="news-review-list-template">
   <v-card>
     <v-card-title>
-      Nutrition
       <v-spacer></v-spacer>
       <v-text-field
         append-icon="search"
@@ -17,17 +16,40 @@
     </v-card-title>
     <v-data-table
       :headers="headers"
-      :items="items"
+      :items="newsInProgress"
       :search="search"
+      :pagination.sync="pagination"
+      item-key="id"
     >
+    
       <template slot="items" slot-scope="props">
-        <td>{{ props.item.name }}</td>
-        <td class="text-xs-right">{{ props.item.calories }}</td>
-        <td class="text-xs-right">{{ props.item.fat }}</td>
-        <td class="text-xs-right">{{ props.item.carbs }}</td>
-        <td class="text-xs-right">{{ props.item.protein }}</td>
-        <td class="text-xs-right">{{ props.item.iron }}</td>
+        <tr @click="props.expanded = !props.expanded">
+          <td class="px-0">{{ props.item.mode }}</td>
+          <td class="text-xs-left caption px-1">{{ props.item.date }}</td> 
+          <td class="text-xs-left px-0">{{ props.item.state }}</td>
+          <td class="text-xs-left px-1">{{ props.item.name }}</td>          
+        </tr>
       </template>
+    <template slot="expand" slot-scope="props">
+      <div class="grey lighten-5 pa-3">
+        <news-review :article="props.item.article"></news-review>
+        <v-divider class="dark"></v-divider>        
+        <v-expansion-panel>
+          <v-expansion-panel-content lazy>
+          <div slot="header">
+            <news-view-header :article="props.item.article"></news-view-header>
+          </div>
+          <v-card>
+            <v-divider class="dark"></v-divider>
+            <v-card-text>
+              <news-view-body :article="props.item.article"></news-view-body>
+              <news-view-references :article="props.item.article"></news-view-references>
+            </v-card-text>
+          </v-card>
+          </v-expansion-panel-content>
+        </v-expansion-panel>  
+      </div>
+    </template>
       <v-alert slot="no-data" :value="true" color="error" icon="warning">
         Sorry, nothing to display here :(
       </v-alert>
@@ -42,120 +64,47 @@
 var newsReviewList = {
     template: '#news-review-list-template',        
     components: {
+       NewsViewHeader: newsViewHeader,
+       NewsViewBody: newsViewBody,
+       NewsViewReferences: newsViewReferences,
+       NewsReview: newsReview
     },
     methods: {
     },
     computed: {
-      
+      newsInProgress () { 
+        console.log ("news-review-list data");
+        let result = [],
+            article = "",
+            news = this.$store.getters.editedNews,
+            vm = this;
+        if (news)
+        _.forEach(news, function(data, id) {
+          article = vm.$store.getters.newsById(id);          
+          result.push({
+            id: data.id,
+            mode: data.mode,
+            date: data.date.replace("T", " "),
+            state: data.state,
+            review: data.review, 
+            article: article,
+            name: article.title          
+            });
+          });
+        return result; 
+        },
       },    
    data: function () {
       return {
         search: '',
+        pagination: { rowsPerPage: 25 }, /* тодо сделать в параметрах */
         headers: [
-          {
-            text: 'Dessert (100g serving)',
-            align: 'left',
-            sortable: false,
-            value: 'name'
-          },
-          { text: 'Calories', value: 'calories' },
-          { text: 'Fat (g)', value: 'fat' },
-          { text: 'Carbs (g)', value: 'carbs' },
-          { text: 'Protein (g)', value: 'protein' },
-          { text: 'Iron (%)', value: 'iron' }
+          { text: '(*)', value: 'mode', width: '1%'},
+          { text: 'Дата', value: 'date', width: '10%'},
+          { text: 'Статус', value: 'state', width: '5%' },
+          { text: 'Заголовок', value: 'name' }
         ],
-        items: [
-          {
-            value: false,
-            name: 'Frozen Yogurt',
-            calories: 159,
-            fat: 6.0,
-            carbs: 24,
-            protein: 4.0,
-            iron: '1%'
-          },
-          {
-            value: false,
-            name: 'Ice cream sandwich',
-            calories: 237,
-            fat: 9.0,
-            carbs: 37,
-            protein: 4.3,
-            iron: '1%'
-          },
-          {
-            value: false,
-            name: 'Eclair',
-            calories: 262,
-            fat: 16.0,
-            carbs: 23,
-            protein: 6.0,
-            iron: '7%'
-          },
-          {
-            value: false,
-            name: 'Cupcake',
-            calories: 305,
-            fat: 3.7,
-            carbs: 67,
-            protein: 4.3,
-            iron: '8%'
-          },
-          {
-            value: false,
-            name: 'Gingerbread',
-            calories: 356,
-            fat: 16.0,
-            carbs: 49,
-            protein: 3.9,
-            iron: '16%'
-          },
-          {
-            value: false,
-            name: 'Jelly bean',
-            calories: 375,
-            fat: 0.0,
-            carbs: 94,
-            protein: 0.0,
-            iron: '0%'
-          },
-          {
-            value: false,
-            name: 'Lollipop',
-            calories: 392,
-            fat: 0.2,
-            carbs: 98,
-            protein: 0,
-            iron: '2%'
-          },
-          {
-            value: false,
-            name: 'Honeycomb',
-            calories: 408,
-            fat: 3.2,
-            carbs: 87,
-            protein: 6.5,
-            iron: '45%'
-          },
-          {
-            value: false,
-            name: 'Donut',
-            calories: 452,
-            fat: 25.0,
-            carbs: 51,
-            protein: 4.9,
-            iron: '22%'
-          },
-          {
-            value: false,
-            name: 'KitKat',
-            calories: 518,
-            fat: 26.0,
-            carbs: 65,
-            protein: 7,
-            iron: '6%'
-          }
-        ]
+        items: []
       }
     }
   };

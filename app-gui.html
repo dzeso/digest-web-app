@@ -92,7 +92,7 @@
           <v-icon light>cached</v-icon>
         </span>
       </v-btn>
-      <v-btn icon to="/news/list/all">
+      <v-btn icon to="/news/list/todo">
         <v-badge color="success">
           <span v-if="todoCount" slot="badge">{{ todoCount }}</span>
           <v-icon>list</v-icon>
@@ -145,7 +145,7 @@
           children: [
             { icon: 'notifications', text: 'Не прочитано', link: '/news/list/unread' },
             { icon: 'inbox', text: 'Не обработано', link: '/news/list/todo' },
-            { icon: 'rate_review', text: 'В работе', link: '/review/list/todo' },
+            { icon: 'rate_review', text: 'В работе', link: '/review/list' },
             { icon: 'history', text: 'Архив', link: '/news/list/all' }
           ]
         },        
@@ -172,7 +172,10 @@
         return Object.keys(this.$store.getters.unreadIndex).length;
         },
       todoCount () {
+        console.log ("===== todoCount ====== recalc", this.$store.getters.todoCount);
         return this.$store.getters.todoCount;
+//        console.log ("===== todoCount ====== recalc", this.$store.getters.todoNews, this.$store.getters.todoNews ? this.$store.getters.todoNews.length : 0);
+//        return this.$store.getters.todoNews ? this.$store.getters.todoNews.length : 0;
         },
       unloadedCount () {
         return this.$store.getters.unloadedCount;
