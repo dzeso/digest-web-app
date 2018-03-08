@@ -70,19 +70,19 @@ var local = {
            if (getters.userProfile.key) dispatch("loadUserProfile", getters.userProfile.key);
             })      
       // получаем актуальные номера версий с сервера
-//         .then(() => {  
-//           const request = {name: "version"};
-//           if (getters.version["version"]) request.param = {version: getters.version["version"].v_server}; 
-//           // если массив версий на локальном диске пуст - иницализируем его в памяти
-//           else {
-//             const result = [];
-//             _.forEach(tablesRef, function({name}) {
-//               if (name) result.push({id: name, v_local: 0, v_server: 0, id_local: 0, id_server: 0});  
-//             });
-//             dispatch("setRefByName", { data: result, name: "version" });
-//           }
-//           return callGasSriptAsPromise().apiGetRef(request);
-//            })
+         .then(() => {  
+           const request = {name: "version"};
+           if (getters.version["version"]) request.param = {version: getters.version["version"].v_server}; 
+           // если массив версий на локальном диске пуст - иницализируем его в памяти
+           else {
+             const result = [];
+             _.forEach(tablesRef, function({name}) {
+               if (name) result.push({id: name, v_local: 0, v_server: 0, id_local: 0, id_server: 0});  
+             });
+             dispatch("setRefByName", { data: result, name: "version" });
+           }
+           return callGasSriptAsPromise().apiGetRef(request);
+            })
        // обновляем локальную таблицу версий в памяти
         .then((result) => {
            console.log ("setVersion - 7");
@@ -97,15 +97,15 @@ var local = {
              console.log ("loadRefByName - 8");
            })            
        // получаем актуальные новости с сервера
-//        .then(() => {
-//           dispatch("reloadNews");
-//           console.log ("reloadNews - 9");
-//           })
-//        // Просим сервер обновить данные по новостям
-//        .then(() => {
-//          dispatch("uploadServer");
-//          console.log ("uploadServer - 4");
-//           })  
+        .then(() => {
+           dispatch("reloadNews");
+           console.log ("reloadNews - 9");
+           })
+        // Просим сервер обновить данные по новостям
+        .then(() => {
+          dispatch("uploadServer");
+          console.log ("uploadServer - 4");
+           })  
         .catch((error) => {
            commit('setFooter', "Локальные данные прочесть не удалось");
            console.error('ls_async_OpenDb', error);

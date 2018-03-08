@@ -25,6 +25,11 @@ var newsView = {
     template: '#news-view-template', 
     props: ['id'],
     name: 'news-view',
+    components: {
+       NewsViewHeader: newsViewHeader,
+       NewsViewBody: newsViewBody,
+       NewsViewReferences: newsViewReferences,
+       },
     methods: {
       goBack () {
         return this.$router.go(-1)
@@ -37,11 +42,6 @@ var newsView = {
         return article;
         },
     },
-    components: {
-       NewsViewHeader: newsViewHeader,
-       NewsViewBody: newsViewBody,
-       NewsViewReferences: newsViewReferences,
-       },
     data () {
       return {
       }
