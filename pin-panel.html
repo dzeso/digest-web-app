@@ -11,30 +11,25 @@
                 {{showPin}}
               </v-card>
             </v-flex>
-            <v-fab-transition>
-                <v-btn disabled fab flat absolute center v-show="spinner">
-                  <v-progress-circular indeterminate color="amber">
-                  </v-progress-circular>
-                </v-btn>
-              </v-fab-transition>
             <v-flex xs4 v-for="i in 9" :key=i>
               <v-card flat tile>
-                <v-btn :disabled="spinner" fab color="primary" @click="pressButton(i)" class="white--text">{{i}}</v-btn>
+                <v-btn :disabled="progress" fab color="primary" @click="pressButton(i)" class="white--text">{{i}}</v-btn>
               </v-card>
             </v-flex>
             <v-flex xs4 offset-xs4 key=0>
               <v-card flat tile>
-                <v-btn :disabled="spinner" fab color="primary" @click="pressButton(0)" class="white--text">0</v-btn>
+                <v-btn :disabled="progress" fab color="primary" @click="pressButton(0)" class="white--text">0</v-btn>
               </v-card>
             </v-flex>
             <v-flex xs4>
               <v-card flat tile>
-                <v-btn :disabled="spinner" fab color="primary" @click="pressButton('del')">
+                <v-btn :disabled="progress" fab color="primary" @click="pressButton('del')">
                   <v-icon color="white">backspace</v-icon>
                 </v-btn>
               </v-card>
             </v-flex>
           </v-layout>
+          <v-progress-linear :indeterminate="true" height="2"  v-show="progress"></v-progress-linear>
         </v-card>
       </v-layout>
     </v-container>
@@ -43,7 +38,7 @@
 <script>
   var pinPanel = {
     template: '#pin-panel-template',
-    props: ['spinner', 'pinLength'],
+    props: ['progress', 'pinLength'],
     data () {
       return {
         pin: ""    

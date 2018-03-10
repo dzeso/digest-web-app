@@ -1,6 +1,6 @@
 <script type="text/x-template" id="news-review-template">
         <v-card v-if="!isNewsReadonly(article)">
-          <v-toolbar color="primary">
+          <v-toolbar color="primary" class="mx-1">
             <v-btn @click.native="saveEdited" icon>
               <v-icon color="white">save</v-icon>
             </v-btn>
@@ -14,29 +14,28 @@
           </v-toolbar>
           <v-container fluid class="px-3">
             <v-layout row wrap>
-            <v-flex xs12>
-              <star-rating 
-                label="Рейтинг новости" 
-                v-model="rating" 
-                :show-rating="false" 
-                :read-only="readonly" 
-                @rating-selected="saveData()"
-              ></star-rating>
-            </v-flex>
-            <v-flex xs12>
-              <v-select
-                :items="rubric"
-                v-model="selectedRubrics"
-                label="Укажите рубрики для новости"
-                multiple
-                chips
-                autocomplete
-                item-text="nm"
-                item-value="id"
-                :readonly="readonly"
-                @change="saveData()"
-              ></v-select>
-            </v-flex>
+              <v-flex xs12>
+                <star-rating 
+                  label="Рейтинг новости" 
+                  v-model="rating" 
+                  :show-rating="false" 
+                  :read-only="readonly" 
+                  @rating-selected="saveData"
+                ></star-rating>
+              </v-flex>
+              <v-flex xs12>
+                <v-select
+                  :items="rubric"
+                  v-model="selectedRubrics"
+                  label="Укажите рубрики для новости"
+                  multiple
+                  chips
+                  item-text="nm"
+                  item-value="id"
+                  :readonly="readonly"
+                  @change="saveData"
+                ></v-select>
+              </v-flex>
               <v-flex xs12>
                 <v-text-field
                   label="Комментарий"
@@ -45,9 +44,8 @@
                   v-model.trim="comment"
                   multi-line
                   :readonly="readonly"
-                  @change="saveData()"
+                  @change="saveData"
                 ></v-text-field>
-              </v-flex>
               </v-flex>
             </v-layout>
           </v-container>
@@ -65,24 +63,24 @@ var newsReview = {
         return ;
       },
       saveData () {
-        console.log("newsReview deactivated", this.article.id);
+//        console.log("newsReview saveData", EDIT_STATE("EDIT").id);
         this.$store.dispatch('saveEditedNews', {
-          id: this.article.id, rubrics: this.selectedRubrics, rating: this.rating, comment: this.comment
-          });
+          id: this.article.id, rubrics: this.selectedRubrics, rating: this.rating, comment: this.comment,
+          mode: EDIT_MODE("EDIT").id, state: EDIT_STATE("EDIT").id});
       },
     },
     computed: {
         
       rubric () {
-        console.log ("newsReview rubric", this.article);
+        console.log ("newsReview rubric", indexedObjectToArray(this.$store.getters.rubric));
         return indexedObjectToArray(this.$store.getters.rubric);
         },
         
-      isNewsReadonly (article) {  
-       return (article) => {
-          return !this.$store.getters.userCanEdit && this.$store.getters.isNewsReadonly(article);
-          } 
-       },
+       isNewsReadonly (article) {  
+         return (article) => {
+           return !this.$store.getters.userCanEdit && this.$store.getters.isNewsReadonly(article);
+           } 
+         },
     },
     components: {
        StarRating: VueStarRating.default
@@ -92,6 +90,10 @@ var newsReview = {
         selectedRubrics: this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].rubrics : this.article.rubrics,
         comment:  this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].comment : "",
         rating: this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].rating : 0,
+//        iconDelete: EDIT_STATE("DELETE").icon,
+//        iconEdit: EDIT_MODE("EDIT").icon,
+//        iconUpload: EDIT_MODE("EDIT").icon,
+//        modeDelete: EDIT_STATE("DELETE"),
         readonly: false
       }
     }

@@ -45,6 +45,46 @@ function UNREAD_TYPE(param) {
   }     
 };
 
+function EDIT_STATE(param) {
+  let editState = [
+    {id: 0, state: "в работе"},
+    {id: 1, state: "дополнить"}, 
+    {id: 2, state: "обосновать"}, 
+    {id: 3, state: "исправить"}, 
+    {id: 4, state: "принято"}, 
+    {id: 5, state: "отвергнуто"},
+    {id: 6, state: "на проверку"}];
+  switch(param) {
+    case "EDIT": return editState[0];
+    case "COMPLETE": return editState[1];
+    case "PROVE": return editState[2];
+    case "CORRECT": return editState[3];
+    case "ACCEPTED": return editState[4];
+    case "REJECTED": return editState[5];
+    case "FOR_CHECK": return editState[6];
+    default: return editState;
+  }     
+};
+
+function EDIT_MODE(param) {
+  let editMode =[
+    {id: 0, icon: "archive", color: "success", tooltip: "редактирование новости завершено"}, 
+    {id: 1, icon: "comment", color: "success", tooltip: "режим комментирования новости"}, 
+    {id: 2, icon: "file_upload", color: "info", tooltip: "в очереди на отправку"}, 
+    {id: 3, icon: "file_download", color: "warning", tooltip: "возвращено редактором"}, 
+    {id: 4, icon: "cloud_queue", color: "info", tooltip: "на проверке"},
+    {id: 5, icon: "delete", color: "error", tooltip: "коментарий помечен к удалению"}];
+  switch(param) {
+    case "ARCHIVE": return editMode[0];
+    case "EDIT": return editMode[1];
+    case "UPLOAD": return editMode[2];
+    case "DOWNlOAD": return editMode[3];
+    case "QUEUE": return editMode[4];
+    case "DELETE": return editMode[5];
+    default: return editMode;  
+  }     
+};
+
 /* Справочники имеют структуру:
   obj[id] = (поля из базы},
   obj.lastId = максимальное id значения

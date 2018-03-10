@@ -28,9 +28,10 @@ var user = {
    },
    actions: {
      readUserProfile ({commit, getters}) {  
-       console.log ("----- readUserProfile старт");
+//       console.log ("----- readUserProfile старт");
        ls_async_ReadTable({db: getters.ls.db["user_profile"], table: "profile"})
          .then(profile => {
+//           console.log ("----- readUserProfile финиш ", profile);
            if (!profile.length) return null;
            for (property of profile) commit('setUserProfileProperty', {
                key: property.key, value: property.value
@@ -38,7 +39,7 @@ var user = {
            })
          .catch((error) => {
          // todo удалить после отладки и создания интерфейса для логина
-           console.error('readUserProfile ---', error);
+           console.error('readUserProfile', error);
             });
      },
      

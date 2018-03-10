@@ -24,10 +24,20 @@
     
       <template slot="items" slot-scope="props">
         <tr @click="props.expanded = !props.expanded">
-          <td class="px-0">{{ props.item.mode }}</td>
+          <td class="text-xs-center px-0">
+              <v-tooltip right>
+                <v-icon slot="activator" :color="editMode[props.item.mode] ? editMode[props.item.mode].color : ''">
+                  {{editMode[props.item.mode] ? editMode[props.item.mode].icon : ''}}
+                </v-icon>
+                <span>
+                  {{editMode[props.item.mode] ? editMode[props.item.mode].tooltip : ''}}
+                </span>
+              </v-tooltip>
+            
+          </td>
           <td class="text-xs-left caption px-1">{{ props.item.date }}</td> 
-          <td class="text-xs-left px-0">{{ props.item.state }}</td>
-          <td class="text-xs-left px-1">{{ props.item.name }}</td>          
+          <td class="text-xs-left px-0">{{ editState[props.item.state] ? editState[props.item.state].state : '' }}</td>
+          <td class="text-xs-left px-1">{{ props.item.title }}</td>          
         </tr>
       </template>
     <template slot="expand" slot-scope="props">
@@ -69,18 +79,21 @@ var newsReviewList = {
        NewsViewReferences: newsViewReferences,
        NewsReview: newsReview
     },
+    deactivated: function () {
+      console.log('--- deactivated  newsReviewList')
+    },
     methods: {
     },
     computed: {
       newsInProgress () { 
-        console.log ("news-review-list data");
         let result = [],
             article = "",
             news = this.$store.getters.editedNews,
             vm = this;
         if (news)
         _.forEach(news, function(data, id) {
-          article = vm.$store.getters.newsById(id);          
+          article = vm.$store.getters.newsById(id);  
+          console.log ("news-review-list article", article);
           result.push({
             id: data.id,
             mode: data.mode,
@@ -88,10 +101,17 @@ var newsReviewList = {
             state: data.state,
             review: data.review, 
             article: article,
-            name: article.title          
+            title: article.title          
             });
           });
         return result; 
+        },
+        
+      editMode () {       
+        return EDIT_MODE(); 
+        },
+      editState () {       
+        return EDIT_STATE(); 
         },
       },    
    data: function () {
@@ -99,10 +119,10 @@ var newsReviewList = {
         search: '',
         pagination: { rowsPerPage: 25 }, /* тодо сделать в параметрах */
         headers: [
-          { text: '(*)', value: 'mode', width: '1%'},
-          { text: 'Дата', value: 'date', width: '10%'},
+          { text: '(*)', value: 'mode', width: '3%'},
+          { text: 'Дата', value: 'date', width: '15%'},
           { text: 'Статус', value: 'state', width: '5%' },
-          { text: 'Заголовок', value: 'name' }
+          { text: 'Заголовок', value: 'title' }
         ],
         items: []
       }

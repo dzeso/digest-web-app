@@ -8,7 +8,7 @@
       <small>Для регестрации в системе введите пин код, если его у вас нет, то пропустите этот шаг</small></v-stepper-step>
     <v-stepper-content step="1">
       <v-card color="light-blue lighten-5" class="mb-3">
-        <pin-panel :spinner="loading" :pin-length="4" @pin_entered="sendPin"></pin-panel>
+        <pin-panel :progress="loading" :pin-length="4" @pin_entered="sendPin"></pin-panel>
       </v-card>
       <v-btn color="primary" @click.native="loginStep = 2">Дальше</v-btn>
     </v-stepper-content>

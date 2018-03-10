@@ -20,6 +20,10 @@ var news = {
     todoCount (state) {  
        return state.news.length - Object.keys(state.editedNews).length;
        },
+    todoReview (state) {  
+       console.log ("todoReview -- called from store", Object.keys(state.editedNews));
+       return Object.keys(state.editedNews).length;
+       },
     todoNews (state) {  
        return _.reverse(_.sortBy(_.filter(state.news, function(o) { return !state.editedNews[o.id]; }), ['date', 'time']));
        },
@@ -82,15 +86,18 @@ var news = {
      saveEditedNews (state, data) {
        if (state.editedNews[data.id]) {
          state.editedNews[data.id].id = data.id;
-         state.editedNews[data.id].rubrics = data.rubrics;
-         state.editedNews[data.id].rating = data.rating;
-         state.editedNews[data.id].comment = data.comment;
+         if (data.rubrics) state.editedNews[data.id].rubrics = data.rubrics;
+         if (data.rating) state.editedNews[data.id].rating = data.rating;
+         if (data.comment) state.editedNews[data.id].comment = data.comment;
+         if (data.state) state.editedNews[data.id].state = data.state;
+         if (data.mode) state.editedNews[data.id].mode = data.mode;
          state.editedNews[data.id].date = dateToText();
          }
        else {
          state.editedNews[data.id] = data;
          state.editedNews[data.id].date = dateToText();
          }
+       console.log ("saveEditedNews", data);
 //       state.lastEditedNewsIndex = data.id;
      },
      removeUnread (state, id) {
