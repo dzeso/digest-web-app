@@ -3,8 +3,8 @@
 </style>
 
 <script type="text/x-template" id="news-view-list-template">
-  <v-expansion-panel popout>
-    <v-expansion-panel-content lazy v-for="article in news" :key=article.id @input="markArticle($event, article.id)">
+  <v-expansion-panel focusable popout>
+    <v-expansion-panel-content lazy v-for="article in news" :key="'v'+article.id" @input="markArticle($event, article.id)">
       <div slot="header">
         <news-view-header :article=article></news-view-header>
       </div>
@@ -35,12 +35,13 @@ var newsViewList = {
     },
     deactivated: function () {
       console.log('--- deactivated  newsViewList' + this.mode)
+      this.markArticle (false, this.$store.getters.lastNewsCommentsIndex)
     },
     methods: {
       markArticle (v, id) {
         if (!v) {
           this.setRead(id);
-          this.setEdited(id);
+          this.setEdited(id); /*todo зачем нужен id?*/
         }
         console.log(v, id)
       },
@@ -49,10 +50,10 @@ var newsViewList = {
           if (this.$store.getters.unreadIndex[id]) this.$store.dispatch("removeFromUnreadIndex", id);
         },
       setEdited: function (id) {
-          console.log ("news-view-list-template - setEdited", id, this.$store.getters.lastEditedNewsIndex);
-          if (this.$store.getters.lastEditedNewsIndex) {
-            this.$store.commit('setObjReactive', this.$store.getters.editedNews);
-            this.$store.commit("setLastEditedNewsIndex", 0);
+          console.log ("news-view-list-template - setEdited", id, this.$store.getters.lastNewsCommentsIndex);
+          if (this.$store.getters.lastNewsCommentsIndex) {
+            this.$store.commit('setObjReactive', this.$store.getters.newsComments);
+            this.$store.commit("setLastNewsCommentsIndex", 0);
             }
         },
       setUnRead: function (id) {
@@ -86,10 +87,6 @@ var newsViewList = {
       },    
    data: function () {
       return {
-//        period: "тут будет указан период",
-//        filterState: "состояние фильтра",
-//        digestState: "количество строк и пр",
-//        soursesList: "ria.ru",
         }
     }
   };

@@ -1,11 +1,23 @@
 <script type="text/x-template" id="news-review-template">
         <v-card v-if="!isNewsReadonly(article)">
           <v-toolbar color="primary" class="mx-1">
-            <v-btn @click.native="saveEdited" icon>
-              <v-icon color="white">save</v-icon>
+            <v-btn v-show="mode==modeEdit.id" @click.native="saveMode(modeUpload)" icon>
+              <v-tooltip top>
+                <v-icon slot="activator" color="white">{{modeUpload.icon}}</v-icon>
+                <span>Отправить на проверку</span>
+              </v-tooltip>
             </v-btn>
-            <v-btn @click.native="deleteEdited" icon>
-              <v-icon color="white">delete</v-icon>
+            <v-btn v-show="mode==modeEdit.id" @click.native="saveMode(modeDelete)" icon>
+              <v-tooltip top>
+                <v-icon slot="activator" color="white">{{modeDelete.icon}}</v-icon>
+                <span>Пометить на удаление</span>
+              </v-tooltip>
+            </v-btn>
+            <v-btn v-show="mode!=modeEdit.id" @click.native="saveMode(modeEdit)" icon>
+              <v-tooltip top>
+                <v-icon slot="activator" color="white">{{modeEdit.icon}}</v-icon>
+                <span>Вернуть в режим редактирования</span>
+              </v-tooltip>
             </v-btn>
             <v-spacer></v-spacer>
             <v-btn icon>
@@ -59,42 +71,64 @@ var newsReview = {
     props: ['article'],
     name: 'news-review',
     methods: {
-      saveEdited () {
-        return ;
+    
+      saveMode (mode) {
+        console.log("newsReview saveMode", mode);
+        this.mode = mode.id;
+        this.$store.dispatch('saveNewsComments', this.commentObject);
       },
+      
       saveData () {
-//        console.log("newsReview saveData", EDIT_STATE("EDIT").id);
-        this.$store.dispatch('saveEditedNews', {
-          id: this.article.id, rubrics: this.selectedRubrics, rating: this.rating, comment: this.comment,
-          mode: EDIT_MODE("EDIT").id, state: EDIT_STATE("EDIT").id});
+        this.mode = EDIT_MODE("EDIT").id;
+        this.state = EDIT_STATE("EDIT").id;
+        console.log("newsReview saveData", this.commentObject);
+        this.$store.dispatch('saveNewsComments', this.commentObject);
       },
     },
     computed: {
         
       rubric () {
-        console.log ("newsReview rubric", indexedObjectToArray(this.$store.getters.rubric));
         return indexedObjectToArray(this.$store.getters.rubric);
+        },
+        
+      readonly () {
+        return this.mode!=this.modeEdit.id;
         },
         
        isNewsReadonly (article) {  
          return (article) => {
-           return !this.$store.getters.userCanEdit && this.$store.getters.isNewsReadonly(article);
+           return !this.$store.getters.userCanEdit || this.$store.getters.isNewsReadonly(article);
            } 
          },
+         
+       commentObject () {  
+         return {
+           id: this.article.id, 
+           idc: this.idc, 
+           rubrics: this.selectedRubrics, 
+           rating: this.rating, 
+           comment: this.comment,
+           mode: this.mode, 
+           state: this.state, 
+           date: dateToText()
+           }
+         } 
     },
     components: {
        StarRating: VueStarRating.default
        },
     data () {
       return {
-        selectedRubrics: this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].rubrics : this.article.rubrics,
-        comment:  this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].comment : "",
-        rating: this.$store.getters.editedNews[this.article.id] ? this.$store.getters.editedNews[this.article.id].rating : 0,
-//        iconDelete: EDIT_STATE("DELETE").icon,
-//        iconEdit: EDIT_MODE("EDIT").icon,
-//        iconUpload: EDIT_MODE("EDIT").icon,
-//        modeDelete: EDIT_STATE("DELETE"),
-        readonly: false
+        selectedRubrics: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].rubrics : this.article.rubrics,
+        comment: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].comment : "",
+        rating: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].rating : 0,
+        mode: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].mode : 1,
+        state: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].state : 0,
+        idc: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].idc : -1,
+        modeDelete: EDIT_MODE("DELETE"),
+        modeEdit: EDIT_MODE("EDIT"),
+        modeUpload: EDIT_MODE("UPLOAD"),
+        stateDelete: EDIT_STATE("EDIT")
       }
     }
 };

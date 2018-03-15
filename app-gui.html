@@ -84,7 +84,7 @@
         <span class="hidden-xs-and-down">Digest</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon @click.stop="reloadNews" :loading="loading" :disabled="loading">
+      <v-btn icon @click.stop="uploadData" :loading="loading" :disabled="loading">
         <v-badge color="error">
           <span v-if="unloadedCount" slot="badge">{{ unloadedCount }}</span>
           <v-icon>refresh</v-icon>
@@ -172,22 +172,18 @@
       ]
     }),
     computed: {
+      todoCount () {  
+        return this.$store.getters.news.length - Object.keys(this.$store.getters.newsComments).length;
+        },
+      todoReview () {  
+        console.log ("todoReview -- called from gui-template", Object.values(this.$store.getters.newsComments));
+        return Object.values(this.$store.getters.newsComments).filter((item) => {return item.mode == EDIT_MODE("DOWNLOAD").id}).length;
+        },
       ui () {
         return this.$store.getters.ui;
         },
       unreadCount () {
         return Object.keys(this.$store.getters.unreadIndex).length;
-        },
-      todoReview () {
-        return this.$store.getters.todoReview;
-//        console.log ("===== todoCount ====== recalc", this.$store.getters.todoNews, this.$store.getters.todoNews ? this.$store.getters.todoNews.length : 0);
-//        return this.$store.getters.todoNews ? this.$store.getters.todoNews.length : 0;
-        },
-      todoCount () {
-        console.log ("===== todoCount ====== recalc", this.$store.getters.todoCount);
-        return this.$store.getters.todoCount;
-//        console.log ("===== todoCount ====== recalc", this.$store.getters.todoNews, this.$store.getters.todoNews ? this.$store.getters.todoNews.length : 0);
-//        return this.$store.getters.todoNews ? this.$store.getters.todoNews.length : 0;
         },
       unloadedCount () {
         return this.$store.getters.unloadedCount;
@@ -197,16 +193,18 @@
         },
     },
     methods: {
-      reloadNews: function () {
+      uploadData: function () {
         this.loading = true;
+        this.$store.dispatch('reloadNewsComments')/*;
         this.$store.dispatch('reloadNews');
-        this.$store.dispatch("uploadServer")
+        this.$store.dispatch("uploadServer")*/
           .then(() => {
+             console.log('uploadData done');
              this.loading = false;
            })         
            .catch((error) => {
              this.loading = false;
-             console.error('reloadNews', error);
+             console.error('uploadData', error);
            }); ;
         }
     },

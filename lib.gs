@@ -24,6 +24,10 @@ function apiGetNews(param) {
   return ria.apiGetNews(param);
 }
 
+function apiNewsComments(param) {
+  return ria.apiNewsComments(param);
+}
+
 function apiGetRef(param) {
   return ria.apiGetRef(param);
 }

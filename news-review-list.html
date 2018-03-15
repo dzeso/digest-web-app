@@ -33,9 +33,8 @@
                   {{editMode[props.item.mode] ? editMode[props.item.mode].tooltip : ''}}
                 </span>
               </v-tooltip>
-            
           </td>
-          <td class="text-xs-left caption px-1">{{ props.item.date }}</td> 
+          <!--  <td class="text-xs-left caption px-1">{{ props.item.date }}</td> -->
           <td class="text-xs-left px-0">{{ editState[props.item.state] ? editState[props.item.state].state : '' }}</td>
           <td class="text-xs-left px-1">{{ props.item.title }}</td>          
         </tr>
@@ -88,14 +87,14 @@ var newsReviewList = {
       newsInProgress () { 
         let result = [],
             article = "",
-            news = this.$store.getters.editedNews,
+            news = this.$store.getters.newsComments,
             vm = this;
         if (news)
         _.forEach(news, function(data, id) {
           article = vm.$store.getters.newsById(id);  
-          console.log ("news-review-list article", article);
           result.push({
             id: data.id,
+            idc: data.idc,
             mode: data.mode,
             date: data.date.replace("T", " "),
             state: data.state,
@@ -110,17 +109,18 @@ var newsReviewList = {
       editMode () {       
         return EDIT_MODE(); 
         },
-      editState () {       
+      editState () {  
+        console.log ("newsReviewList editState", EDIT_STATE());
         return EDIT_STATE(); 
         },
       },    
    data: function () {
       return {
         search: '',
-        pagination: { rowsPerPage: 25 }, /* тодо сделать в параметрах */
+        pagination: { sortBy: 'state', rowsPerPage: 25 }, /* тодо сделать в параметрах */
         headers: [
           { text: '(*)', value: 'mode', width: '3%'},
-          { text: 'Дата', value: 'date', width: '15%'},
+//          { text: 'Дата', value: 'date', width: '15%'},
           { text: 'Статус', value: 'state', width: '5%' },
           { text: 'Заголовок', value: 'title' }
         ],

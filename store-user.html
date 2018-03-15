@@ -19,21 +19,25 @@ var user = {
        },
    },
    mutations: {
+   
      setUserProfile (state, userProfile) {  
        state.userProfile = userProfile;
      },
+     
      setUserProfileProperty (state, property) {  
        state.userProfile[property.key] = property.value;
      },
    },
    actions: {
+   
      readUserProfile ({commit, getters}) {  
 //       console.log ("----- readUserProfile старт");
        ls_async_ReadTable({db: getters.ls.db["user_profile"], table: "profile"})
          .then(profile => {
 //           console.log ("----- readUserProfile финиш ", profile);
            if (!profile.length) return null;
-           for (property of profile) commit('setUserProfileProperty', {
+           for (property of profile) 
+             commit('setUserProfileProperty', {
                key: property.key, value: property.value
                });
            })
@@ -44,12 +48,13 @@ var user = {
      },
      
      loadUserProfile ({commit, getters}, param) {  
-       console.log ("----- loadUserProfile старт", param);
+//       console.log ("----- loadUserProfile старт", param);
        return callGasSriptAsPromise().apiGetUserProfile({ command: "get profile", param: param })
         .then((profile) => {
-          console.log ("apiGetUserProfile command: get profile", profile);
+//          console.log ("apiGetUserProfile command: get profile", profile);
           if (profile < 0) return profile;
           commit('setUserProfile', profile);
+//          console.log ("ls_async_WriteTable user_profile", {key: "key", value: profile.key}, profile.key);
           ls_async_WriteTable( {db: getters.ls.db["user_profile"], table: "profile", index: "key", data: [{key: "key", value: profile.key}]} )
             .then (result => {
                console.log ("ls_async_WriteTable user_profile", result);

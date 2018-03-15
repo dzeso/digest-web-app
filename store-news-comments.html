@@ -1,0 +1,155 @@
+<script>
+var newsComments = {
+  state: {
+    newsComments: {},
+    lastNewsCommentsIndex: 0,
+  },
+  getters: {
+
+    newsComments (state) {  
+       return state.newsComments;
+       },
+    newsCommentsByMode (state, mode) {  
+       return (mode) => {
+          return Object.values(state.newsComments).filter((item) => {return item.mode == mode})
+          }
+       },
+    lastNewsCommentsIndex (state) {  
+       return state.lastNewsCommentsIndex;
+       },
+   },
+   mutations: {
+   
+     setNewsComments (state, data) {
+//       console.log ("setNewsComments", data);
+       state.newsComments = arrayToIndexedObjeсt(data);
+     },
+     
+     setLastNewsCommentsIndex (state, id) {
+       state.lastNewsCommentsIndex = id;
+       console.log ("setLastNewsCommentsIndex", id);
+     },
+     
+     removeNewsComments (state, id) {
+       if (state.newsComments[id]) delete state.newsComments[id]; /* если не проверить на сущестовавние, то при ошибке удалятся все данные*/
+     },
+     
+     saveNewsComments (state, data) {
+       state.newsComments[data.id] = data;
+       console.log ("saveNewsComments", data);
+     },
+   },
+   actions: {
+   
+     saveNewsComments ({commit, getters}, data) {
+       commit('saveNewsComments', data);
+       commit('setLastNewsCommentsIndex', data.id);
+       ls_async_WriteTable({db: getters.ls.db["user_profile"], table: "comments", index: "id", data: [data]})
+         .catch((error) => {
+           console.error('saveNewsComments', error);
+           });
+       console.log ("saveNewsComments");
+       return;      
+       },
+       
+     downloadNewsComments ({dispatch, getters}) {
+       const request = {
+             command: "download comments",
+             param: {iduser: getters.userProfile.id}
+             };
+       console.log ("downloadNewsComments");
+       return callGasSriptAsPromise().apiNewsComments(request)
+         .then((results) => {
+           console.log ('callGasSriptAsPromise().apiNewsComments download comments', results);
+           let idDownloadedComments = [];
+           if (!results.done) return idDownloadedComments;
+           for (const comment of results.downloaded) {
+              dispatch("saveNewsComments", comment);
+              idDownloadedComments.push(comment.idc);
+              }
+           return idDownloadedComments;
+           })
+         .then((idDownloadedComments) => {   
+           if (idDownloadedComments.length>0) callGasSriptAsPromise().apiNewsComments({
+             command: "set comments mode",
+             param: {
+               iduser: getters.userProfile.id,
+               idclist: idDownloadedComments,
+               mode: EDIT_MODE("QUEUE").id}
+             }); /* todo возможно тут стоит сделать откат изменений (вернуть статус коментариев в EDIT_MODE("QUEUE").id, если не удалось поменять статус на серевере*/
+           })
+         .catch((error) => {
+           console.error('downloadNewsComments apiNewsComments', error);
+           }); 
+       },
+       
+     deleteNewsComments ({getters, commit}) {
+       const toDeleteFromClient = Object.values(getters.newsComments).filter((item) => {return item.mode == EDIT_MODE("DELETE").id}),
+             toDeleteFromServer = [];
+       console.log ("deleteNewsComments старт", toDeleteFromClient);
+       for (let comment of toDeleteFromClient) {
+         console.log ("deleteNewsComments comment", comment, comment.id, comment.idc);
+         if (comment.idc < 0) {
+           commit("removeNewsComments", comment.id);
+           /* тут и ниже if (comment.id) нужно чтоб в случае ошибки не удалять данные из всей таблицы*/
+           if (comment.id) ls_async_DeleteFromTable ({db: getters.ls.db["user_profile"], table: "comments", where: {id: comment.id}});
+         } else toDeleteFromServer.push(comment.idc);        
+       }
+       console.log ("deleteNewsComments toDeleteFromServer", toDeleteFromServer);
+       if (toDeleteFromServer.length > 0) 
+         return callGasSriptAsPromise().apiNewsComments({
+           command: "set comments mode",
+           param: {
+             iduser: getters.userProfile.id,
+             idclist: toDeleteFromServer,
+             mode: EDIT_MODE("DELETE").id}
+           })
+         .then((result) => {
+           console.log ("deleteNewsComments toDeleteFromServer result", result);
+           if (result.done) 
+             for (let comment of toDeleteFromServer) {
+               console.log ("deleteNewsComments toDeleteFromServer comment", comment, comment.id, comment.idс);
+               commit("removeNewsComments", comment.id);
+               if (comment.id) ls_async_DeleteFromTable ({db: getters.ls.db["user_profile"], table: "comments", where: {id: comment.id}});
+             } 
+           })
+         .catch((error) => {
+           console.error('deleteNewsComments apiNewsComments', error);
+         }); 
+       console.log ("deleteNewsComments", toDeleteFromClient, toDeleteFromServer);
+       },
+       
+     uploadNewsComments ({dispatch, getters}) {
+       let toUpload = getters.newsCommentsByMode(EDIT_MODE("UPLOAD").id);
+       console.log ("uploadNewsComments старт", toUpload);
+       if (toUpload.length > 0) 
+         callGasSriptAsPromise().apiNewsComments({
+           command: "upload comments",
+           param: {
+             iduser: getters.userProfile.id,
+             comments: toUpload}
+           })
+         .then((result) => {
+           console.log ("uploadNewsComments финиш", result);
+           for (let comment of result.uploaded) {
+             comment.mode = EDIT_MODE("QUEUE").id;
+             dispatch("saveNewsComments", comment);
+             } 
+           })
+         .catch((error) => {
+           console.error('uploadNewsComments apiNewsComments', error);
+         }); 
+       },
+       
+     reloadNewsComments ({dispatch, commit, getters}) {
+//       dispatch("downloadNewsComments");
+//       dispatch("deleteNewsComments");
+       dispatch("uploadNewsComments");
+       commit('setObjReactive', getters.newsComments);
+       console.log ("reloadNewsComments");    
+       },
+     
+   }
+};
+console.log ("store_news_comments started");
+</script>

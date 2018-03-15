@@ -25,6 +25,7 @@ new Vue({
     Test: test
     },
   created: function () { 
+    console.log ("start App");
     this.$store.dispatch("startLocalDb");
   }
 });
