@@ -27,7 +27,7 @@ var newsComments = {
      
      setLastNewsCommentsIndex (state, id) {
        state.lastNewsCommentsIndex = id;
-       console.log ("setLastNewsCommentsIndex", id);
+//       console.log ("setLastNewsCommentsIndex", id);
      },
      
      removeNewsComments (state, id) {
@@ -36,7 +36,7 @@ var newsComments = {
      
      saveNewsComments (state, data) {
        state.newsComments[data.id] = data;
-       console.log ("saveNewsComments", data);
+//       console.log ("saveNewsComments", data);
      },
    },
    actions: {
@@ -48,25 +48,27 @@ var newsComments = {
          .catch((error) => {
            console.error('saveNewsComments', error);
            });
-       console.log ("saveNewsComments");
+//       console.log ("saveNewsComments");
        return;      
        },
        
-     downloadNewsComments ({dispatch, getters}) {
+     downloadNewsComments ({dispatch, getters, commit}) {
        const request = {
              command: "download comments",
              param: {iduser: getters.userProfile.id}
              };
-       console.log ("downloadNewsComments");
+//       console.log ("downloadNewsComments");
        return callGasSriptAsPromise().apiNewsComments(request)
          .then((results) => {
-           console.log ('callGasSriptAsPromise().apiNewsComments download comments', results);
+//           console.log ('callGasSriptAsPromise().apiNewsComments download comments', results);
            let idDownloadedComments = [];
            if (!results.done) return idDownloadedComments;
            for (const comment of results.downloaded) {
+//              console.log ('downloadNewsComments saveNewsComments', comment);
               dispatch("saveNewsComments", comment);
               idDownloadedComments.push(comment.idc);
               }
+           if (idDownloadedComments.length > 0) commit('setObjReactive', getters.newsComments);
            return idDownloadedComments;
            })
          .then((idDownloadedComments) => {   
@@ -84,7 +86,7 @@ var newsComments = {
        },
        
      deleteNewsComments ({getters, commit}) {
-       const toDeleteFromClient = Object.values(getters.newsComments).filter((item) => {return item.mode == EDIT_MODE("DELETE").id}),
+       const toDeleteFromClient = getters.newsCommentsByMode(EDIT_MODE("DELETE").id),
              toDeleteFromServer = [];
        console.log ("deleteNewsComments старт", toDeleteFromClient);
        for (let comment of toDeleteFromClient) {
@@ -95,6 +97,7 @@ var newsComments = {
            if (comment.id) ls_async_DeleteFromTable ({db: getters.ls.db["user_profile"], table: "comments", where: {id: comment.id}});
          } else toDeleteFromServer.push(comment.idc);        
        }
+       if (toDeleteFromClient.length > 0) commit('setObjReactive', getters.newsComments);
        console.log ("deleteNewsComments toDeleteFromServer", toDeleteFromServer);
        if (toDeleteFromServer.length > 0) 
          return callGasSriptAsPromise().apiNewsComments({
@@ -106,12 +109,16 @@ var newsComments = {
            })
          .then((result) => {
            console.log ("deleteNewsComments toDeleteFromServer result", result);
-           if (result.done) 
-             for (let comment of toDeleteFromServer) {
-               console.log ("deleteNewsComments toDeleteFromServer comment", comment, comment.id, comment.idс);
-               commit("removeNewsComments", comment.id);
-               if (comment.id) ls_async_DeleteFromTable ({db: getters.ls.db["user_profile"], table: "comments", where: {id: comment.id}});
-             } 
+           if (result.done) {
+             for (let comment of toDeleteFromClient) {
+               console.log ("deleteNewsComments toDeleteFromServer comment", comment, comment.id, comment.idc);
+               if (comment.idc >= 0) {
+                 commit("removeNewsComments", comment.id);
+                 if (comment.id) ls_async_DeleteFromTable ({db: getters.ls.db["user_profile"], table: "comments", where: {id: comment.id}});
+                 }
+             }
+             commit('setObjReactive', getters.newsComments);
+             }
            })
          .catch((error) => {
            console.error('deleteNewsComments apiNewsComments', error);
@@ -119,9 +126,10 @@ var newsComments = {
        console.log ("deleteNewsComments", toDeleteFromClient, toDeleteFromServer);
        },
        
-     uploadNewsComments ({dispatch, getters}) {
+     uploadNewsComments ({dispatch, getters, commit}) {
        let toUpload = getters.newsCommentsByMode(EDIT_MODE("UPLOAD").id);
-       console.log ("uploadNewsComments старт", toUpload);
+//       console.log ("uploadNewsComments toUpload", toUpload);
+//       console.log ("uploadNewsComments getters.userProfile.id", getters.userProfile.id);
        if (toUpload.length > 0) 
          callGasSriptAsPromise().apiNewsComments({
            command: "upload comments",
@@ -130,23 +138,29 @@ var newsComments = {
              comments: toUpload}
            })
          .then((result) => {
-           console.log ("uploadNewsComments финиш", result);
-           for (let comment of result.uploaded) {
+//           console.log ("uploadNewsComments финиш", result);
+           for (let uploaded of result.uploaded) {
+             let comment = getters.newsComments[uploaded.id];
              comment.mode = EDIT_MODE("QUEUE").id;
+             comment.idc = uploaded.idс;
+             comment.ids = EDIT_STATUS("IN_REVIEW").id;
              dispatch("saveNewsComments", comment);
              } 
+           if (result.uploaded.length > 0) commit('setObjReactive', getters.newsComments);
            })
          .catch((error) => {
            console.error('uploadNewsComments apiNewsComments', error);
          }); 
        },
        
-     reloadNewsComments ({dispatch, commit, getters}) {
-//       dispatch("downloadNewsComments");
-//       dispatch("deleteNewsComments");
-       dispatch("uploadNewsComments");
-       commit('setObjReactive', getters.newsComments);
-       console.log ("reloadNewsComments");    
+     reloadNewsComments ({dispatch}) {
+       console.log ("reloadNewsComments старт"); 
+       return dispatch("downloadNewsComments")
+         .then(() => {dispatch("deleteNewsComments")})
+         .then(() => {dispatch("uploadNewsComments")})
+         .catch((error) => {
+           console.error('reloadNewsComments', error);
+         });
        },
      
    }

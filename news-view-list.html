@@ -3,8 +3,19 @@
 </style>
 
 <script type="text/x-template" id="news-view-list-template">
+<v-card>
+  <v-card-title>
+      <v-spacer></v-spacer>
+      <v-text-field
+        append-icon="search"
+        label="Search"
+        single-line
+        hide-details
+        v-model="searchQuery"
+      ></v-text-field>
+  </v-card-title>
   <v-expansion-panel focusable popout>
-    <v-expansion-panel-content lazy v-for="article in news" :key="'v'+article.id" @input="markArticle($event, article.id)">
+    <v-expansion-panel-content lazy v-for="article in filteredNews" :key="'v'+article.id" @input="markArticle($event, article.id)">
       <div slot="header">
         <news-view-header :article=article></news-view-header>
       </div>
@@ -18,6 +29,7 @@
       <news-review :article=article></news-review>
     </v-expansion-panel-content>
   </v-expansion-panel>
+</v-card>  
 </script>
 
 <script>
@@ -76,6 +88,21 @@ var newsViewList = {
           }
         return []; 
         },
+      tags (idtags) { 
+        return (idtags) => {
+          let tags = "";
+          for (let id of idtags) tags += this.$store.getters.tag[id].nm + " ";
+          return tags;
+          }  
+        },
+      filteredNews: function () {
+        const self = this;
+        const searchRegex = new RegExp(self.searchQuery, 'i');
+          return self.news.filter(function (article) {
+            return searchRegex.test(article.title) || searchRegex.test(article.paragraphs[0].text) ||
+                   searchRegex.test(self.tags(article.tags))
+        })
+        },
       unreadIndex () { return this.$store.getters.unreadIndex; },
       unreadTypeClass () { return  this.$store.getters.ui.unreadType; },
       isNewsReadonly (article) {  
@@ -87,6 +114,7 @@ var newsViewList = {
       },    
    data: function () {
       return {
+        searchQuery: ""
         }
     }
   };

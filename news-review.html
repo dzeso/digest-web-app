@@ -1,19 +1,19 @@
 <script type="text/x-template" id="news-review-template">
-        <v-card v-if="!isNewsReadonly(article)">
+        <v-card v-if="!noComments">
           <v-toolbar color="primary" class="mx-1">
-            <v-btn v-show="mode==modeEdit.id" @click.native="saveMode(modeUpload)" icon>
+            <v-btn v-show="!readonly" @click.native="saveMode({mode: modeUpload, status: statusToCheck})" icon>
               <v-tooltip top>
                 <v-icon slot="activator" color="white">{{modeUpload.icon}}</v-icon>
                 <span>Отправить на проверку</span>
               </v-tooltip>
             </v-btn>
-            <v-btn v-show="mode==modeEdit.id" @click.native="saveMode(modeDelete)" icon>
+            <v-btn v-show="!readonly" @click.native="saveMode({mode: modeDelete})" icon>
               <v-tooltip top>
                 <v-icon slot="activator" color="white">{{modeDelete.icon}}</v-icon>
                 <span>Пометить на удаление</span>
               </v-tooltip>
             </v-btn>
-            <v-btn v-show="mode!=modeEdit.id" @click.native="saveMode(modeEdit)" icon>
+            <v-btn v-show="readonly" @click.native="saveMode({mode: modeEdit, status: statusEdit})" icon>
               <v-tooltip top>
                 <v-icon slot="activator" color="white">{{modeEdit.icon}}</v-icon>
                 <span>Вернуть в режим редактирования</span>
@@ -72,15 +72,16 @@ var newsReview = {
     name: 'news-review',
     methods: {
     
-      saveMode (mode) {
-        console.log("newsReview saveMode", mode);
-        this.mode = mode.id;
+      saveMode (param) {
+        console.log("newsReview saveMode", param);
+        if (param.mode) this.mode = param.mode.id;
+        if (param.status) this.ids = param.status.id;
         this.$store.dispatch('saveNewsComments', this.commentObject);
       },
       
       saveData () {
-        this.mode = EDIT_MODE("EDIT").id;
-        this.state = EDIT_STATE("EDIT").id;
+        this.mode = this.modeEdit.id;
+        this.ids = this.statusEdit.id;
         console.log("newsReview saveData", this.commentObject);
         this.$store.dispatch('saveNewsComments', this.commentObject);
       },
@@ -95,21 +96,25 @@ var newsReview = {
         return this.mode!=this.modeEdit.id;
         },
         
-       isNewsReadonly (article) {  
-         return (article) => {
-           return !this.$store.getters.userCanEdit || this.$store.getters.isNewsReadonly(article);
-           } 
+       noComments () {  
+         console.log("newsReview noComments", (!this.$store.getters.userCanEdit || this.$store.getters.isNewsReadonly(this.article)));
+         console.log("newsReview userCanEdit", (this.$store.getters.userCanEdit));
+         console.log("newsReview this.$store.getters.isNewsReadonly(article))", (this.$store.getters.isNewsReadonly(this.article)));
+         return !this.$store.getters.userCanEdit || this.$store.getters.isNewsReadonly(this.article);
          },
          
        commentObject () {  
+         console.log("newsReview commentObject креатед");
          return {
            id: this.article.id, 
            idc: this.idc, 
-           rubrics: this.selectedRubrics, 
-           rating: this.rating, 
-           comment: this.comment,
+           review: {
+              rubrics: this.selectedRubrics, 
+              rating: this.rating, 
+              comment: this.comment
+              },
            mode: this.mode, 
-           state: this.state, 
+           ids: this.ids, 
            date: dateToText()
            }
          } 
@@ -118,17 +123,22 @@ var newsReview = {
        StarRating: VueStarRating.default
        },
     data () {
+      let newsComments = this.$store.getters.newsComments[this.article.id] || {};
+      let newsCommentsReview = newsComments.review || {};
+      console.log("newsReview newsComments", newsComments);
+      console.log("newsReview newsCommentsReview", newsCommentsReview);
       return {
-        selectedRubrics: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].rubrics : this.article.rubrics,
-        comment: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].comment : "",
-        rating: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].rating : 0,
-        mode: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].mode : 1,
-        state: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].state : 0,
-        idc: this.$store.getters.newsComments[this.article.id] ? this.$store.getters.newsComments[this.article.id].idc : -1,
+        selectedRubrics: newsCommentsReview.rubrics || this.article.rubrics,
+        comment: newsCommentsReview.comment || "",
+        rating: newsCommentsReview.rating || 0,
+        mode: newsComments.mode || 1,
+        ids: newsComments.ids || 0,
+        idc: newsComments.idc || -1,
         modeDelete: EDIT_MODE("DELETE"),
         modeEdit: EDIT_MODE("EDIT"),
         modeUpload: EDIT_MODE("UPLOAD"),
-        stateDelete: EDIT_STATE("EDIT")
+        statusToCheck: EDIT_STATUS("TO_CHECK"),
+        statusEdit: EDIT_STATUS("EDIT")
       }
     }
 };

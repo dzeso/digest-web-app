@@ -45,24 +45,26 @@ function UNREAD_TYPE(param) {
   }     
 };
 
-function EDIT_STATE(param) {
-  let editState = [
-    {id: 0, state: "в работе"},
-    {id: 1, state: "дополнить"}, 
-    {id: 2, state: "обосновать"}, 
-    {id: 3, state: "исправить"}, 
-    {id: 4, state: "принято"}, 
-    {id: 5, state: "отвергнуто"},
-    {id: 6, state: "на проверку"}];
+function EDIT_STATUS(param) {
+  let editStatus = [
+    {id: 0, status: "в работе"},
+    {id: 1, status: "дополнить"}, 
+    {id: 2, status: "обосновать"}, 
+    {id: 3, status: "исправить"}, 
+    {id: 4, status: "принято"}, 
+    {id: 5, status: "отвергнуто"},
+    {id: 6, status: "на проверку"},
+    {id: 7, status: "на проверке"}];
   switch(param) {
-    case "EDIT": return editState[0];
-    case "COMPLETE": return editState[1];
-    case "PROVE": return editState[2];
-    case "CORRECT": return editState[3];
-    case "ACCEPTED": return editState[4];
-    case "REJECTED": return editState[5];
-    case "FOR_CHECK": return editState[6];
-    default: return editState;
+    case "EDIT": return editStatus[0];
+    case "COMPLETE": return editStatus[1];
+    case "PROVE": return editStatus[2];
+    case "CORRECT": return editStatus[3];
+    case "ACCEPTED": return editStatus[4];
+    case "REJECTED": return editStatus[5];
+    case "TO_CHECK": return editStatus[6];
+    case "IN_REVIEW": return editStatus[7];
+    default: return editStatus;
   }     
 };
 

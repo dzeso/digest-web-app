@@ -10,7 +10,7 @@
       <v-card color="light-blue lighten-5" class="mb-3">
         <pin-panel :progress="loading" :pin-length="4" @pin_entered="sendPin"></pin-panel>
       </v-card>
-      <v-btn color="primary" @click.native="loginStep = 2">Дальше</v-btn>
+      <v-btn :disabled="loading" color="primary" @click.native="loginStep = 2">Дальше</v-btn>
     </v-stepper-content>
     <v-stepper-step step="2" :complete="loginStep > 2">
       Введите email

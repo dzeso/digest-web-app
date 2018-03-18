@@ -15,7 +15,7 @@ var user = {
        return state.userProfile.id ? true : false;
        },
      userCanEdit (state) {  
-       return state.userProfile.access ? !!(+state.userProfile.access["edit"]) : false;
+       return state.userProfile.access ? !!(+state.userProfile.access["comment"]) : false;
        },
    },
    mutations: {

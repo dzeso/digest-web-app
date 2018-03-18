@@ -16,7 +16,7 @@
     </v-card-title>
     <v-data-table
       :headers="headers"
-      :items="newsInProgress"
+      :items="newsInReview"
       :search="search"
       :pagination.sync="pagination"
       item-key="id"
@@ -35,7 +35,7 @@
               </v-tooltip>
           </td>
           <!--  <td class="text-xs-left caption px-1">{{ props.item.date }}</td> -->
-          <td class="text-xs-left px-0">{{ editState[props.item.state] ? editState[props.item.state].state : '' }}</td>
+          <td class="text-xs-left px-0">{{ props.item.status }}</td>
           <td class="text-xs-left px-1">{{ props.item.title }}</td>          
         </tr>
       </template>
@@ -84,7 +84,7 @@ var newsReviewList = {
     methods: {
     },
     computed: {
-      newsInProgress () { 
+      newsInReview () { 
         let result = [],
             article = "",
             news = this.$store.getters.newsComments,
@@ -97,7 +97,7 @@ var newsReviewList = {
             idc: data.idc,
             mode: data.mode,
             date: data.date.replace("T", " "),
-            state: data.state,
+            status: vm.editStatus[data.ids].status,
             review: data.review, 
             article: article,
             title: article.title          
@@ -109,19 +109,19 @@ var newsReviewList = {
       editMode () {       
         return EDIT_MODE(); 
         },
-      editState () {  
-        console.log ("newsReviewList editState", EDIT_STATE());
-        return EDIT_STATE(); 
+      editStatus () {  
+        console.log ("newsReviewList editStatus", EDIT_STATUS());
+        return EDIT_STATUS(); 
         },
       },    
    data: function () {
       return {
         search: '',
-        pagination: { sortBy: 'state', rowsPerPage: 25 }, /* тодо сделать в параметрах */
+        pagination: { sortBy: 'status', rowsPerPage: 25 }, /* тодо сделать в параметрах */
         headers: [
           { text: '(*)', value: 'mode', width: '3%'},
 //          { text: 'Дата', value: 'date', width: '15%'},
-          { text: 'Статус', value: 'state', width: '5%' },
+          { text: 'Статус', value: 'status', width: '5%' },
           { text: 'Заголовок', value: 'title' }
         ],
         items: []

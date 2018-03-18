@@ -177,7 +177,7 @@
         },
       todoReview () {  
         console.log ("todoReview -- called from gui-template", Object.values(this.$store.getters.newsComments));
-        return Object.values(this.$store.getters.newsComments).filter((item) => {return item.mode == EDIT_MODE("DOWNLOAD").id}).length;
+        return this.$store.getters.newsCommentsByMode(EDIT_MODE("DOWNLOAD").id).length;
         },
       ui () {
         return this.$store.getters.ui;
