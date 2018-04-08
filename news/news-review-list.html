@@ -1,0 +1,63 @@
+<style>
+
+</style>
+
+<script type="text/x-template" id="news-review-list-template">
+  <v-card>
+    <v-card-title class="py-0">
+      <v-spacer></v-spacer>
+      <v-text-field
+        append-icon="search"
+        label="Search"
+        single-line
+        hide-details
+        v-model="search"
+      ></v-text-field> 
+    </v-card-title>
+    <v-tabs
+      lazy
+      v-model="tab"
+      slider-color="primary"
+    >
+      <v-tab v-for="item in items" :key="item.title">
+        {{ item.title }}
+      </v-tab>
+      <v-tabs-items v-model="tab">
+        <v-tab-item v-for="item in items" :key="item.title">
+          <v-card flat>
+            <v-card-text>
+              <news-comment-list :mode="item.mode" :search="search"></news-comment-list>
+            </v-card-text>
+          </v-card>
+        </v-tab-item>
+      </v-tabs-items>
+    </v-tabs>
+  </v-card>
+</script>
+
+<script>
+var newsReviewList = {
+    template: '#news-review-list-template',        
+    components: {
+       NewsCommentList: newsCommentList
+    },
+    deactivated: function () {
+      console.log('--- deactivated  newsReviewList')
+    },
+    methods: {
+    },    
+    data: function () {
+      return {
+        search: '',
+        tab: null,
+        items: [
+         {title: 'мои', mode: 'comment'},
+         {title: 'на проверку ', mode: 'review'},
+         ],
+      }
+    }
+  };
+
+console.log ("newsReviewList started");
+</script>
+

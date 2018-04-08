@@ -1,0 +1,73 @@
+<style>
+</style>
+
+<script type="text/x-template" id="pin-panel-template"> 
+  <v-container grid-list-md text-xs-center fluid>
+      <v-layout justify-space-around>
+        <v-card width="240px">
+          <v-layout row wrap row ma-0 justify-space-around>
+            <v-flex xs12>
+              <v-card flat tile class="primary--text">
+                {{showPin}}
+              </v-card>
+            </v-flex>
+            <v-flex xs4 v-for="i in 9" :key=i>
+              <v-card flat tile>
+                <v-btn :disabled="progress" fab color="primary" @click="pressButton(i)" class="white--text">{{i}}</v-btn>
+              </v-card>
+            </v-flex>
+            <v-flex xs4 offset-xs4 key=0>
+              <v-card flat tile>
+                <v-btn :disabled="progress" fab color="primary" @click="pressButton(0)" class="white--text">0</v-btn>
+              </v-card>
+            </v-flex>
+            <v-flex xs4>
+              <v-card flat tile>
+                <v-btn :disabled="progress" fab color="primary" @click="pressButton('del')">
+                  <v-icon color="white">backspace</v-icon>
+                </v-btn>
+              </v-card>
+            </v-flex>
+          </v-layout>
+          <v-progress-linear :indeterminate="true" height="2"  v-show="progress"></v-progress-linear>
+        </v-card>
+      </v-layout>
+    </v-container>
+</script>
+
+<script>
+  var pinPanel = {
+    template: '#pin-panel-template',
+    props: ['progress', 'pinLength'],
+    data () {
+      return {
+        pin: ""    
+      }
+   },
+   activated: function () {
+      this.pin = "";
+    },
+   computed: {
+     showPin () {
+       return "★".repeat(this.pin.length).padEnd(4, "☆");;
+       },
+   },
+   methods: {
+     pressButton (n) {
+       if (n =='del') {
+         if (this.pin.length > 0)
+           this.pin = this.pin.slice(0, -1);
+         return; 
+       }
+       if (this.pin.length == this.pinLength) return;
+       else this.pin += n;
+       if (this.pin.length == this.pinLength) {
+         this.$emit('pin_entered', this.pin);
+       }
+    },
+  },
+};
+console.log ("pin started");
+</script>
+
+

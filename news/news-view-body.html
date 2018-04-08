@@ -1,0 +1,23 @@
+<script type="text/x-template" id="news-view-body-template">
+     <span>
+       <template v-for="(paragraph, index) in article.paragraphs">
+         <p v-if="index > 0" :class=paragraphType[paragraph.type] :key=paragraph.id>{{paragraph.text}}</p>
+       </template>
+     </span>
+</script>
+
+<script>
+// Типы параграфов:1 - стандартный текст 2 - лид (абстракт) 3 - подзаголовок 4 - вопрос 5 - цитата 6 - источник
+console.log ("newsViewBody started");
+var newsViewBody = {
+      template: '#news-view-body-template',
+      props: ['article'],      
+      name: 'news-view-body',   
+      computed: {      
+        paragraphType () {
+          return ['body-1','body-1','subheading','title','body-2','caption','body-1']
+          }
+        }
+};
+</script>
+

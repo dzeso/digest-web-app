@@ -1,0 +1,44 @@
+<script type="text/x-template" id="slider-item-template">
+  <v-flex>
+    <div
+      style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      "
+    >
+      <div class="input-group pa-0">
+        <label>{{label}}</label>
+      </div>
+      <v-chip small>
+        {{itemValue ? itemValue : min}}
+      </v-chip>
+    </div>
+    <v-slider
+      v-model="itemValue"
+      class="px-2 py-0"
+      :min="min"
+      :max="max"
+      hide-details
+    ></v-slider>
+  </v-flex>
+</script>
+
+<script>
+console.log ("SliderItem started");
+var SliderItem = {
+    template: '#slider-item-template', 
+    props: ['value', 'label', 'min', 'max'],
+    name: 'slider-item',
+    methods: {
+    
+      saveDate () {
+        console.log("SliderItem saveDate", this.itemValue);
+        this.$emit('sliderItemValue', this.itemValue)
+      },
+    },
+    data: () => ({
+      itemValue: this.value
+    })
+};
+</script>

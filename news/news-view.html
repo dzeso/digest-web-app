@@ -1,0 +1,51 @@
+<script type="text/x-template" id="news-view-template">
+      <v-card>
+          <v-card-title primary-title>
+             <news-view-header :article="article"></news-view-header>
+          </v-card-title>
+        <v-card-text>          
+          <news-view-body :article="article"></news-view-body>
+          <news-view-references :article="article"></news-view-references>
+        </v-card-text>
+        <v-toolbar color="primary">
+           <v-btn @click.native="goBack" icon>
+              <v-icon color="white">arrow_back</v-icon>
+           </v-btn>
+           <v-spacer></v-spacer>
+           <v-btn icon>
+              <v-icon color="white">more_vert</v-icon>
+           </v-btn>
+         </v-toolbar>
+      </v-card>
+</script>
+
+<script>
+console.log ("newsView started");
+var newsView = {
+    template: '#news-view-template', 
+    props: ['id'],
+    name: 'news-view',
+    components: {
+       NewsViewHeader: newsViewHeader,
+       NewsViewBody: newsViewBody,
+       NewsViewReferences: newsViewReferences,
+       },
+    methods: {
+      goBack () {
+        return this.$router.go(-1)
+      },
+    },
+    computed: {
+      article () {
+        let article = this.$store.getters.newsById(this.id);
+        if (!article) return {references: [], paragraphs: [], source: [], rubrics: []}
+        return article;
+        },
+    },
+    data () {
+      return {
+      }
+    }
+};
+</script>
+

@@ -1,0 +1,142 @@
+<script type="text/x-template" id="report-words-cloud-template">  
+      <v-card width="100%" class="pa-4">
+        <v-card-actions>
+          <v-bottom-nav value="true" :active.sync="navButton" color="transparent">
+            <v-btn flat color="teal" @click="showWordsCloud">
+              <span>Показать</span>
+              <v-icon>present_to_all</v-icon>
+            </v-btn>
+            <v-btn flat color="teal" @click="mode=!mode">
+              <span>Настроить</span>
+              <v-icon>perm_data_setting</v-icon>
+            </v-btn>
+          </v-bottom-nav>
+        </v-card-actions>
+        <v-card-media  v-show="mode" height="65vh">
+          <vue-word-cloud
+             :words="words"
+             :color="color"
+             :rotation="getRotation"
+             :font-family="fontFamily"
+          ></vue-word-cloud> 
+        </v-card-media>
+        <v-card-text  v-show="!mode" height="65vh">
+         <v-layout row wrap>
+          <v-flex xs12 sm6 lg4 class="px-1">
+            <date-picker :date="dateFrom" :label="'Начало интервала'" @dateSelectedByPicker="setDateFrom"></date-picker> 
+          </v-flex>
+          <v-flex xs12 sm6 lg4 class="px-1">
+            <date-picker :date="dateTo" :label="'Конец интервала'" @dateSelectedByPicker="setDateTo"></date-picker> 
+          </v-flex>
+          <v-flex xs12 sm6 lg4 class="px-1">
+            <slider-item 
+              :value="minCount" 
+              :label="'Мин.число повторений'" 
+              :min=1
+              :max=10
+              @sliderItemValue="setMinCount">
+            </slider-item> 
+          </v-flex>
+          <v-flex xs12>
+            <v-btn
+              color="secondary"
+              :loading="loading"
+              @click.native="getWords"
+              :disabled="loading"
+            >Перестроить облако</v-btn>
+           </v-flex>
+         </v-layout>
+        </v-card-text>
+      </v-card>
+</script>
+
+<script>
+console.log ("reportWordsCloud started");
+var reportWordsCloud = {
+    template: '#report-words-cloud-template', 
+    props: {       
+    },
+    name: 'report-words-cloud',
+    components: {
+       DatePicker: DatePickerMenu,
+       SliderItem: SliderItem
+       },
+    computed: {
+      getRotation () {
+        var value = this.rotation.values[this.rotationType];
+    	return value;
+		},
+    },
+    methods: {
+      changeRotationType () {
+        this.rotationType = Math.floor(Math.random() * 5);
+        this.rotation.value = this.rotation.values[this.rotationType];
+      },
+      showWordsCloud () {
+        this.mode = true;
+      },
+      getWords () {
+        this.loading = true;
+        var request = {command: "tag cloud", param: 
+          {minCount: this.minCount,
+          dateFilter: {from: this.dateFrom, to: this.dateTo}}
+          };
+        console.log ('getWords', request);
+        return callGasSriptAsPromise().apiReports(request)
+         .then((results) => {
+           console.log ('callGasSriptAsPromise().apiReports', results);
+           this.loading = false;
+           this.mode = true;
+           this.words = results;
+           return results;
+           })
+         .catch((error) => {
+           this.loading = false;
+           console.error('apiReports ', error);
+           });         
+      },
+      getNewRotationType () {
+        this.rotationType == 4 ? this.rotationType = 0 : this.rotationType += 1; // Math.floor(Math.random() * 5);
+        this.rotation.value = this.rotation.values[this.rotationType];
+      },
+      setDateFrom (dateFrom) {
+        console.log ("setDateFrom", dateFrom);
+        this.dateFrom = dateFrom;
+      },
+      setDateTo (dateTo) {
+        console.log ("setDateTo", dateTo);
+        this.dateTo = dateTo;
+      },
+      setMinCount (minCount) {
+        console.log ("setMinCount", minCount);
+        this.minCount = minCount;
+      },
+  },
+    data () {
+      return {
+        mode: true, // отображать отчет
+        dateFrom: "",
+        dateTo: "",
+        minCount: 1,
+        navButton: 0,
+        loading: false,
+        rotation: (function() {
+		  var values = [
+            0, 7/8, () =>  Math.random(),
+            () => [0, 3/4][Math.floor(Math.random() * (2))],
+			() => [0, 1/8, 3/4, 7/8][Math.floor(Math.random() * (4))]
+            ];
+            return {
+              values: values,
+              value: values[[Math.floor(Math.random() * (5))]],
+              };
+           })(),
+        words: [['romance', 19], ['horror', 3], ['fantasy', 7], ['adventure', 3]],
+        color: ([, weight]) => this.colors[weight],
+        fontFamily: "Russo One",
+        colors: ['#403030', '#f97a7a', '#31a50d', '#d1b022', '#74482a', '#ffd077', '#3bc4c7', '#3a9eea', '#ff4e69', '#461e47','#403030'],
+        rotationType: 3
+      }
+    }
+};
+</script>

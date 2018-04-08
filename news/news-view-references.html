@@ -1,0 +1,25 @@
+<script type="text/x-template" id="news-view-references-template">
+     <span v-if="(article.references.length>0)">  
+          <span class="primary--text caption"> См. так же по теме:</span>
+          <ol class="pl-4 caption">
+            <template v-for="reference in article.references">
+              <li v-if="(!reference.id_to)" class="primary--text" :key=reference.id>
+                <a class="" target="_blank" :href="'//'+reference.link"> {{ reference.title }} (->)</a>
+              </li>
+              <li v-else class="primary--text" :key=reference.id>
+                <router-link :to="'/news/' + reference.id_to" tag="a">{{ reference.title }}</router-link>
+              </li>
+            </template>
+          </ol>
+     </span>
+</script>
+
+<script>
+console.log ("newsViewReferences started");
+var newsViewReferences = {
+      template: '#news-view-references-template',
+      props: ['article'],      
+      name: 'news-view-body'
+};
+</script>
+

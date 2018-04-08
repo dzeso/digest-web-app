@@ -1,0 +1,205 @@
+<script type="text/x-template" id="news-comment-edit-template">
+        <v-card v-if="!noComments">
+          <v-toolbar color="primary" class="mx-1">
+           <div v-for="btnName in btnNames">
+            <v-btn v-show="btnShow[idm][btnName]" @click.native="saveMode(btnName)" icon>
+              <v-tooltip top>
+                <v-icon slot="activator" color="white">{{btnIcon(btnName)}}</v-icon>
+                <span>{{btnTooltip[btnName]}}</span>
+              </v-tooltip>
+            </v-btn>
+           </div> 
+           <v-btn v-show="(!ifNotEditMode)" @click.native="saveComment" icon>
+              <v-tooltip top>
+                <v-icon slot="activator" color="white">save</v-icon>
+                <span>Сохранить изменения</span>
+              </v-tooltip>
+            </v-btn>
+          </v-toolbar>
+          <v-container fluid class="px-3">
+            <v-layout row wrap>
+              <v-flex xs12>
+                <star-rating 
+                  label="Рейтинг новости" 
+                  v-model="rating" 
+                  :show-rating="false" 
+                  :read-only="ifNotEditMode" 
+                  :star-size="20"
+                  @rating-selected="saveComment"
+                ></star-rating>
+              </v-flex>
+              <v-flex xs12>
+                <v-select
+                  :items="rubric"
+                  v-model="selectedRubrics"
+                  label="Укажите рубрики для новости"
+                  multiple
+                  chips
+                  item-text="nm"
+                  item-value="id"
+                  :readonly="ifNotEditMode"
+                  @input="saveComment"
+                ></v-select>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  label="Комментарий"
+                  :rules="[(v) => v.length <= 1024 || 'Max 1024 characters']"
+                  :counter="1024"
+                  v-model.trim="comment"
+                  multi-line
+                  :readonly="ifNotEditMode"
+                  @change="saveComment"
+                ></v-text-field>
+              </v-flex>
+            </v-layout>
+            <v-card v-show="(idr > 0)" color="light-green lighten-5" class="pa-3 ml-5 mr-3">
+             <v-layout row wrap>
+              <v-flex xs12>
+                <v-select
+                  color="info"
+                  class="input-group--focused"
+                  :items="statusList"
+                  v-model="ids"
+                  label="Замечания редактора"
+                  item-text="status"
+                  item-value="id"
+                  :readonly="ifNotReviewMode"
+                  @input="saveComment"
+                ></v-select>
+              </v-flex>
+              <v-flex xs12>
+                <v-text-field
+                  :rules="[(v) => v.length <= 1024 || 'Max 1024 characters']"
+                  :counter="1024"
+                  color="info"
+                  class="input-group--focused"
+                  v-model.trim="remarks"
+                  multi-line
+                  :readonly="ifNotReviewMode"
+                  @change="saveComment"
+                ></v-text-field>
+              </v-flex>
+             </v-layout>
+            </v-card>
+          </v-container>
+        </v-card>
+</script>
+
+<script>
+console.log ("newsCommentEdit started");
+var newsCommentEdit = {
+    template: '#news-comment-edit-template', 
+    props: ['article'],
+    name: 'news-comment-edit',
+    methods: {
+    
+      saveMode (mode) {
+        console.log("newsCommentEdit saveMode", mode);
+        let ids;
+        if (mode === "EDIT") {ids = EDIT_STATUS("EDIT").id;}
+        else if (mode === "DELETE") {ids = EDIT_STATUS("EDIT").id;}
+        else if (mode === "UPLOAD") {ids = EDIT_STATUS("TO_CHECK").id;}
+        this.idm = EDIT_MODE(mode).id;
+        if (ids) this.ids = ids;
+        this.$store.dispatch('saveNewsComments', this.commentObject);
+      },
+      
+      saveComment () {
+        console.log("newsCommentEdit saveData", this.commentObject);
+        this.$store.dispatch('saveNewsComments', this.commentObject);
+      },
+
+    },
+    computed: {
+        
+      rubric () {
+        return indexedObjectToArray(this.$store.getters.rubric);
+        },
+        
+      ifNotEditMode () {
+        return this.idm!=EDIT_MODE("EDIT").id;
+        },
+        
+      ifNotReviewMode () {
+        return this.idm!=EDIT_MODE("REVIEW").id;
+        },
+        
+       btnIcon (mode) {
+        return (mode) => {return EDIT_MODE(mode).icon};
+        },
+        
+       noComments () {  
+//         console.log("newsCommentEdit noComments", (!this.$store.getters.userCanComment || this.$store.getters.isNewsReadonly(this.article)));
+//         console.log("newsCommentEdit userCanComment", (this.$store.getters.userCanComment));
+//         console.log("newsCommentEdit this.$store.getters.isNewsReadonly(article))", (this.$store.getters.isNewsReadonly(this.article)));
+         return !this.$store.getters.userCanComment || this.$store.getters.isNewsReadonly(this.article);
+         },
+         
+       commentObject () {  
+//         console.log("newsCommentEdit commentObject креатед");
+         return {
+           id: this.article.id, 
+           idc: this.idc, 
+           idu: this.idu, 
+           idr: this.idr, 
+           review: {
+              rubrics: this.selectedRubrics, 
+              rating: this.rating, 
+              comment: this.comment,
+              remarks: this.remarks
+              },
+           idm: this.idm, 
+           ids: this.ids, 
+           date: dateToText()
+           }
+         } 
+    },
+    components: {
+       StarRating: VueStarRating.default
+       },
+    data () {
+      let newsComments = this.$store.getters.newsComments[this.article.id] || {};
+      let newsCommentsReview = newsComments.review || {};
+      let btnShow = {};
+      btnShow[EDIT_MODE("EDIT").id] = {"UPLOAD": true, "DELETE": true};
+      btnShow[EDIT_MODE("REVIEW").id] = {"DOWNLOAD": true, "ARCHIVE": true};
+      btnShow[EDIT_MODE("UPLOAD").id] = {"EDIT": true, "DELETE": true};
+      btnShow[EDIT_MODE("DOWNLOAD").id] = {"REVIEW": true, "ARCHIVE": true};
+      btnShow[EDIT_MODE("DOWNLOADED").id] = {"EDIT": true};
+      btnShow[EDIT_MODE("QUEUE").id] = {}; 
+      btnShow[EDIT_MODE("ARCHIVE").id] = {"REVIEW": true, "DOWNLOAD": true};
+      btnShow[EDIT_MODE("DELETE").id] = {"EDIT": true};
+
+//      console.log("newsCommentEdit newsComments", newsComments);
+//      console.log("newsCommentEdit newsCommentsReview", newsCommentsReview);
+      return {
+        selectedRubrics: newsCommentsReview.rubrics || this.article.rubrics,
+        comment: newsCommentsReview.comment || "",
+        remarks: newsCommentsReview.remarks || "",
+        rating: newsCommentsReview.rating || 0,
+        idm: newsComments.idm || 1,
+        ids: newsComments.ids || 0,
+        idc: newsComments.idc || -1,
+        idu: newsComments.idu || this.$store.getters.userProfile.id,
+        idr: newsComments.idr|| 0,
+        btnShow: btnShow,
+        btnNames: ["EDIT", "DELETE", "UPLOAD", "ARCHIVE", "DOWNLOAD", "QUEUE", "DOWNLOADED", "REVIEW"],
+        btnTooltip: {
+          "EDIT": "Вернуть в режим редактирования", 
+          "DELETE": "Пометить на удаление", 
+          "UPLOAD": "Отправить на проверку", 
+          "ARCHIVE": "Окончить комментарование новости", 
+          "DOWNLOAD": "Отправить на доработку",
+          "QUEUE": "Ожидание результатов", 
+          "DOWNLOADED": "Возвращено редактором", 
+          "REVIEW": "Вернуть в режим ревью"},
+        statusList: [ 
+          EDIT_STATUS("COMPLETE"), EDIT_STATUS("PROVE"), EDIT_STATUS("CORRECT"),
+          EDIT_STATUS("ACCEPTED"), EDIT_STATUS("REJECTED")]
+      
+      }
+    }
+};
+</script>
+

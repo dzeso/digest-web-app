@@ -1,0 +1,124 @@
+<style>
+
+</style>
+
+<script type="text/x-template" id="news-view-list-template">
+<v-card>
+  <v-card-title>
+      <v-spacer></v-spacer>
+      <v-text-field
+        append-icon="search"
+        label="Search"
+        single-line
+        hide-details
+        v-model="searchQuery"
+      ></v-text-field>
+  </v-card-title>
+  <v-expansion-panel focusable popout>
+    <v-expansion-panel-content lazy v-for="article in filteredNews" :key="'v'+article.id" @input="markArticle($event, article.id)">
+      <div slot="header">
+        <news-view-header :article=article></news-view-header>
+      </div>
+      <v-card>
+        <v-divider class="dark"></v-divider>
+        <v-card-text>
+          <news-view-body :article=article></news-view-body>
+          <news-view-references :article="article"></news-view-references>
+        </v-card-text>
+      </v-card>
+      <news-comment-edit :article=article></news-comment-edit>
+    </v-expansion-panel-content>
+  </v-expansion-panel>
+</v-card>  
+</script>
+
+<script>
+var newsViewList = {
+    template: '#news-view-list-template',      
+    props: ['mode'],
+    components: {
+       NewsViewHeader: newsViewHeader,
+       NewsViewBody: newsViewBody,
+       NewsCommentEdit: newsCommentEdit,
+       NewsViewReferences: newsViewReferences
+    },
+    activated: function () {
+      console.log('--- activated  newsViewList' + this.mode)
+    },
+    deactivated: function () {
+      console.log('--- deactivated  newsViewList' + this.mode)
+      this.markArticle (false, this.$store.getters.lastNewsCommentsIndex)
+    },
+    methods: {
+      markArticle (v, id) {
+        if (!v) {
+          this.setRead(id);
+          this.setEdited(id); /*todo зачем нужен id?*/
+        }
+        console.log(v, id)
+      },
+      setRead: function (id) {
+          console.log ("news-view-list-template - setRead", id, this.$store.getters.unreadIndex[id]);
+          if (this.$store.getters.unreadIndex[id]) this.$store.dispatch("removeFromUnreadIndex", id);
+        },
+      setEdited: function (id) {
+          console.log ("news-view-list-template - setEdited", id, this.$store.getters.lastNewsCommentsIndex);
+          if (this.$store.getters.lastNewsCommentsIndex) {
+            this.$store.commit('setObjReactive', this.$store.getters.newsComments);
+            this.$store.commit("setLastNewsCommentsIndex", 0);
+            }
+        },
+      setUnRead: function (id) {
+          console.log ("news-view-list-template - setUnRead", id);
+          const unreadIndex = {id: id, type: UNREAD_TYPE('UNREAD')};
+          this.$store.commit("insertUnreadIndex", unreadIndex);
+          this.$store.commit('setObjReactive', this.$store.getters.unreadIndex);
+          console.log ("news-view-list-template - unreadIndex", unreadIndex);
+          ls_async_WriteTable({db: this.$store.getters.ls.db["user_data"], table: "unread", index: "id", data: [unreadIndex]});
+        }  
+    },
+    computed: {
+      
+      news () { 
+        console.log ("news-view-list-template - mode", this.mode);
+        switch(this.mode) {
+          case "unread": return this.$store.getters.unreadNews;
+          case "todo": return this.$store.getters.todoNews;
+          case "all": return this.$store.getters.news;
+          }
+        return []; 
+        },
+//      tags (idtags) { 
+//        return (idtags) => {
+//          let tags = "";
+//          for (let id of idtags) tags += this.$store.getters.tag[id].nm + " ";
+//          return tags;
+//          }  
+//        },
+      filteredNews: function () {
+        const self = this;
+        const searchRegex = new RegExp(self.searchQuery, 'i');
+          return self.news.filter(function (article) {
+            return searchRegex.test(article.title) || searchRegex.test(article.paragraphs[0].text)
+//                   || searchRegex.test(self.tags(article.tags))
+        })
+        },
+      unreadIndex () { return this.$store.getters.unreadIndex; },
+      unreadTypeClass () { return  this.$store.getters.ui.unreadType; },
+      isNewsReadonly (article) {  
+       return (article) => {
+          return !this.$store.getters.userCanComment && this.$store.getters.isNewsReadonly(article);
+          } 
+       },
+      
+      },    
+   data: function () {
+      return {
+        searchQuery: ""
+        }
+    }
+  };
+
+console.log ("newsViewList started");
+</script>
+

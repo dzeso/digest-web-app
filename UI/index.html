@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <link href='//fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons|Russo+One' rel="stylesheet">
+    <link href="//unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <link href="//cdn.materialdesignicons.com/2.1.19/css/materialdesignicons.min.css" media="all" rel="stylesheet" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title>CultureNewsDigest</title>
+    <base target="_top">
+    <?!= include('UI/css'); ?>
+  </head>
+
+  <body>
+    <div id="digest">
+      <v-app>
+        <gui-app></gui-app>
+      </v-app>
+    </div>
+
+    <script src="//unpkg.com/vue/dist/vue.js"></script>
+    <script src="//unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="//unpkg.com/vuex"></script>
+    <script src="//unpkg.com/vuetify/dist/vuetify.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/lodash@4.17.4/lodash.min.js"></script>
+    <script src="//unpkg.com/vuewordcloud"></script>
+    <script src="//unpkg.com/vue-star-rating/dist/star-rating.min.js">
+    "use strict";</script>
+    
+    <?!= includeFromGoogleDrive('1iwc7Z0PDAnfAjoNk4hXnGWF551jOXJV-'); ?> <!-- localstoragedb -->
+    <?!= includeFromGoogleDrive('1Ong0eQT4fDeIXuvSJCQi5V3EfV9F2TtP'); ?> <!-- localstoragedb_util -->
+    <?!= includeFromGoogleDrive('1GTeN3TmzyGVDqc2eQp_HBRPgumsehVOr'); ?> <!-- googlescript -->
+   
+    <?!= include('components/date-picker-menu'); ?>
+    <?!= include('components/slider-item'); ?>
+    <?!= include('data/store-local-storage'); ?>
+    <?!= include('data/store-user'); ?>
+    <?!= include('data/store-news-comments'); ?>
+    <?!= include('data/store-news'); ?>
+    <?!= include('data/store-refs'); ?>
+    <?!= include('data/store'); ?>
+    <?!= include('test'); ?>
+    <?!= include('pin-panel'); ?>
+    <?!= include('login'); ?>
+    <?!= include('user-profile'); ?>
+    <?!= include('news/news-view-header'); ?>
+    <?!= include('news/news-view-body'); ?>
+    <?!= include('news/news-view-references'); ?>
+    <?!= include('news/news-view'); ?>
+    <?!= include('news/news-comment-edit'); ?>
+    <?!= include('news/news-comment-review'); ?>
+    <?!= include('news/news-comment-list'); ?>
+    <?!= include('news/news-view-list'); ?>
+    <?!= include('news/news-review-list'); ?>
+    <?!= include('reports/report-words-cloud'); ?>
+    <?!= include('UI/app-gui'); ?>
+    <?!= include('UI/start-page'); ?>
+    <?!= include('UI/router'); ?>
+    <?!= include('UI/app'); ?>
+
+  </body>
+
+</html>
+
+
+    

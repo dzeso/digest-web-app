@@ -1,0 +1,143 @@
+<style>
+
+</style>
+
+<script type="text/x-template" id="news-comment-list-template">
+    <v-data-table
+      :headers="headers"
+      :items="newsInReview"
+      :search="search"
+      :pagination.sync="pagination"
+      item-key="id"
+    >    
+      <template slot="items" slot-scope="props">
+        <tr @click="props.expanded = !props.expanded">
+          <td class="text-xs-center px-0">
+              <v-tooltip right>
+                <v-icon slot="activator" :color="editMode[props.item.idm] ? editMode[props.item.idm].color : ''">
+                  {{editMode[props.item.idm] ? editMode[props.item.idm].icon : ''}}
+                </v-icon>
+                <span>
+                  {{editMode[props.item.idm] ? editMode[props.item.idm].tooltip : ''}}
+                </span>
+              </v-tooltip>
+          </td>
+          <!--  <td class="text-xs-left caption px-1">{{ props.item.date }}</td> -->
+          <td class="text-xs-left px-0">{{ props.item.status }}</td>
+          <td class="text-xs-left px-1">{{ props.item.title }}</td>          
+        </tr>
+      </template>
+    <template slot="expand" slot-scope="props">
+      <div class="grey lighten-5 pa-3">
+        <news-comment-edit :article="props.item.article"></news-comment-edit>
+        <v-divider class="dark"></v-divider>        
+        <v-expansion-panel>
+          <v-expansion-panel-content lazy>
+          <div slot="header">
+            <news-view-header :article="props.item.article"></news-view-header>
+          </div>
+          <v-card>
+            <v-divider class="dark"></v-divider>
+            <v-card-text>
+              <news-view-body :article="props.item.article"></news-view-body>
+              <news-view-references :article="props.item.article"></news-view-references>
+            </v-card-text>
+          </v-card>
+          </v-expansion-panel-content>
+        </v-expansion-panel>  
+      </div>
+    </template>
+      <v-alert slot="no-data" :value="true" color="error" icon="warning">
+        Sorry, nothing to display here :(
+      </v-alert>
+      <v-alert slot="no-results" :value="true" color="error" icon="warning">
+        Your search for "{{ search }}" found no results.
+      </v-alert>
+    </v-data-table>
+</script>
+
+<script>
+var newsCommentList = {
+    template: '#news-comment-list-template',        
+    components: {
+       NewsViewHeader: newsViewHeader,
+       NewsViewBody: newsViewBody,
+       NewsViewReferences: newsViewReferences,
+       NewsCommentEdit: newsCommentEdit,
+       NewsCommentReview: newsCommentReview
+    },
+    props: {
+      mode: {
+        type: String,
+        required: true,
+        validator: function (value) {
+          return [
+            'comment',
+            'review'
+            ].indexOf(value) !== -1
+          }
+        },
+       search: { type: String }
+    },
+    methods: {
+    },
+    computed: {
+      newsInReview () { 
+        const vm = this;
+        let result = [],
+            article = "",
+            news = Object.values(this.$store.getters.newsComments)
+              .filter((item) => {
+                return vm.$store.getters.isCurrentUser({idUser: item.idu, is: vm.isCurrentUser})
+                });            
+//            news = Object.values(this.$store.getters.newsComments);
+        console.log ("newsCommentList newsInReview", this.isCurrentUser, news);
+        if (news.length > 0)
+          for (let data of news) {
+              article = this.$store.getters.newsById(data.id);  
+              if (article) { /*todo сделать загрузку статей на которые есть ссылка, но которых нет в текущей базе*/
+                console.log ("newsCommentList data", data);
+                result.push({
+                  id: data.id,
+                  idc: data.idc,
+                  idu: data.idu,
+                  idm: data.idm,
+                  date: data.date.replace("T", " "),
+                  status: this.editStatus[data.ids].status,
+                  review: data.review, 
+                  article: article,
+                  title: article.title          
+                });
+              }
+            }
+        return result; 
+        },
+      isCurrentUser () { 
+        console.log ("newsCommentList isCurrentUser", (this.mode === "comment"));
+        return (this.mode === "comment"); 
+        },
+        
+      editMode () {       
+        return EDIT_MODE(); 
+        },
+      editStatus () {  
+        console.log ("newsCommentList editStatus", EDIT_STATUS());
+        return EDIT_STATUS(); 
+        },
+      },    
+   data: function () {
+      return {
+        pagination: { sortBy: 'status', rowsPerPage: 25 }, /* тодо сделать в параметрах */
+        headers: [
+          { text: '(*)', value: 'mode', width: '3%'},
+          { text: 'Статус', value: 'status', width: '5%' },
+          { text: 'Заголовок', value: 'title' }
+        ],
+        items: []
+      }
+    }
+  };
+
+console.log ("newsCommentList started");
+</script>
+
